@@ -2,12 +2,9 @@
 #include <nRF24L01.h>
 #include <RF24.h>
 #include <Adafruit_PWMServoDriver.h>
+#include "pindefs.h"
 
-const int ledPinRed = 11;      // the number of the red LED pin
-const int ledPinGreen = 12;    // the number of the green LED pin
-const int irSensorPin0 = 36;  // the number of the IR sensor pin
-const int right_sensor = 38;
-const int left_sensor = 34;
+
 int max_speed = 1720;
 int min_speed = 1280;
 int L_Lower_limit_stop=1438;
