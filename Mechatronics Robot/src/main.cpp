@@ -7,28 +7,29 @@
 
 
 // These variables were determined based on some testing of the motors
-int L_Lower_limit_stop=1438;
-int L_Upper_limit_stop=1487;
-int R_Lower_limit_stop=1434;
-int R_Upper_limit_stop=1482;
+int left_LowerStopLimit = 1438;
+int left_UpperStopLimit = 1487;
+int right_LowerStopLimit = 1434;
+int right_UpperStopLimit = 1482;
 
-// This gives us our "stopped speed", which allows us to 
-int L_stopped_speed = (L_Upper_limit_stop+L_Lower_limit_stop)/2;
-int R_stopped_speed = (R_Upper_limit_stop+R_Lower_limit_stop)/2;
+// These give us our "stopped speed" for the left and right servo, which allows us to fine tune the straight driving capabilities
+int left_StoppedSpeed = (left_UpperStopLimit + left_LowerStopLimit)/2;
+int right_StoppedSpeed = (right_UpperStopLimit + right_LowerStopLimit)/2;
 
-// Miscellanious variables
-int speed = 120;
-int run_speed = 75; // if 20 or below it will be stopped, and should exceeding 220 has no effec
-long timer = 0;
-long t = 0;
-long t_4_fire = 0;
-long led_blink_time = 0;
-int count = 0;
-bool counting = false;
-bool has_seen = false;
+/*
+'runSpeed' is how fast we are running our servos. The units are arbitrary, but they add/subtract to the StoppedSpeed 
+variables to create forward and backward motion (which is written in microseconds of pwm signal). 'rightSpeed' and 
+'leftSpeed' are fed to the motors for how fast they should go
+*/
+int runSpeed = 120;
+int rightSpeed = left_StoppedSpeed;
+int leftSpeed = right_StoppedSpeed;
+
+// 'currentTime' keeps the time of our system
+unsigned long currentTime = 0;
 
 // Servo initialization
-Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+Adafruit_PWMServoDriver servo = Adafruit_PWMServoDriver();
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 
 // Radio initialization
@@ -54,18 +55,18 @@ struct Data_Package {
 Data_Package data;
 
 // Initializing our functions 
-void Receive_data();
-void Move_Motors(int Left_speed,int Right_speed);
-void Detect_Fire();
-void counting_lines();
+void receiveData();
+void moveMotors(int leftInput,int rightInput);
+void detectFire();
+void countLines();
 
 
 void setup() {
   // Pin initialization
   pinMode(ledPinRed, OUTPUT);    // initialize the red LED pin as an output
   pinMode(ledPinGreen, OUTPUT);  // initialize the green LED pin as an output
-  pinMode(irSensorPin0, INPUT);  // initialize the IR sensor pin as an input
-  pinMode(Fire_detector, INPUT);  // initialize the IR sensor pin as an input
+  pinMode(middleFloorSensor, INPUT);  // initialize the IR sensor pin as an input
+  pinMode(frontIRSensor, INPUT);  // initialize the IR sensor pin as an input
 
   // Radio setup
   Serial.begin(9600);
@@ -78,13 +79,14 @@ void setup() {
   radio.setPALevel(RF24_PA_MIN);
 
   // Servo setup
-  pwm.begin();
-  pwm.setOscillatorFrequency(27000000);
-  pwm.setPWMFreq(SERVO_FREQ);  
+  servo.begin();
+  servo.setOscillatorFrequency(27000000);
+  servo.setPWMFreq(SERVO_FREQ);  
   delay(10);
 }
 
 void loop() {
+  currentTime = millis();
   // calibration sequence - only used prior to actual testing
 
   // pwm.writeMicroseconds(9, 1444);
@@ -94,13 +96,13 @@ void loop() {
   //   delay(500);
   // }
 
-  Receive_data();
-  Move_Motors(data.Lefty,data.Righty);
-  counting_lines();
-  Detect_Fire();
+  receiveData();
+  moveMotors(data.Lefty,data.Righty);
+  detectFire();
+  countLines();
 }
 
-void Receive_data(){
+void receiveData(){
   delay(5);
   radio.startListening();
   if (radio.available()) {
@@ -113,86 +115,99 @@ void Receive_data(){
 }
 
 /*
-This function is used for us to manually control the speeds of our two wheels, labeled as left and right.
+This function is used for us to control the speeds of our two wheels, labeled as left and right.
 */ 
-void Move_Motors(int Left_speed,int Right_speed){
-  if (Left_speed>700){
-    pwm.writeMicroseconds(9, L_stopped_speed + speed);
+void moveMotors(int leftInput,int rightInput){
+  // augment the right wheel speed according to the input
+  if (leftInput>700){
+    leftSpeed = left_StoppedSpeed + runSpeed;
   }
-  else if (Left_speed<200){
-    pwm.writeMicroseconds(9, L_stopped_speed - speed);
+  else if (leftInput<200){
+    leftSpeed = left_StoppedSpeed - runSpeed;
   }
   else{
-    pwm.writeMicroseconds(9, L_stopped_speed);
+    leftSpeed = left_StoppedSpeed;
   }
   
-  if (Right_speed>700){
-    pwm.writeMicroseconds(10, R_stopped_speed - speed);
+  // augment the right wheel speed according to the input
+  if (rightInput>700){
+    rightSpeed = right_StoppedSpeed - runSpeed;
   }
-   else if (Right_speed<200){
-    pwm.writeMicroseconds(10,R_stopped_speed + speed);
-   }
+  else if (rightInput<200){
+    rightSpeed = right_StoppedSpeed + runSpeed;
+  }
   else{
-    pwm.writeMicroseconds(10, R_stopped_speed);
+    rightSpeed = right_StoppedSpeed;
   }
+
+  // actuate the servo motors
+  servo.writeMicroseconds(leftServoPin, leftSpeed);
+  servo.writeMicroseconds(rightServoPin, rightSpeed);
 }
 
+unsigned long fireTimer = 0;
+int upPosition = 1000;
+int downPosition = 1900;
 /*
 This function is used for us to detect the IR signal from the 'fire', and respond accordingly by moving our 'ladder'.
 */ 
-void Detect_Fire(){
-  int Fire_State=digitalRead(Fire_detector);
-  if(Fire_State==0){
-    t_4_fire  = millis();
+void detectFire(){
+  int fireState = digitalRead(frontIRSensor);
+  if(fireState == 0){
+    fireTimer = millis();
   }
-  if((millis()-t_4_fire)<1000){
-    pwm.writeMicroseconds(11, 1900);
+
+  if( (currentTime - fireTimer) < 1000){
+    servo.writeMicroseconds(ladderServoPin, downPosition);
   }
   else{
-    pwm.writeMicroseconds(11, 1000);
+    servo.writeMicroseconds(ladderServoPin, upPosition);
   }
-  // Serial.println((millis()-t_4_fire));
+  // Serial.println((currentTime - fireTimer));
 }
 
+unsigned long lineTimer = 0;
+unsigned long ledBlinkingTimer = 0;
+bool currentlyCounting = false;
+bool hasSeenLine = false;
+int lineCount = 0;
 /*
 This function is used for us to count the lines and determine whether they are a double or a single line.
 */ 
-void counting_lines(){
- t = millis();
-  if (digitalRead(irSensorPin0) == LOW && !has_seen) {
-    counting = true;
-    timer = millis();
-    has_seen = true;
+void countLines(){
+  if (digitalRead(middleFloorSensor) == LOW && !hasSeenLine) {
+    currentlyCounting = true;
+    lineTimer = millis();
+    hasSeenLine = true;
   }
-  if (digitalRead(irSensorPin0) == HIGH && has_seen){
-    count += 1;
-    has_seen = false;
+  if (digitalRead(middleFloorSensor) == HIGH && hasSeenLine){
+    lineCount += 1;
+    hasSeenLine = false;
     delay(50);
   }
 
-  if (t - timer > 750){
-    counting = false;
+  if (currentTime - lineTimer > 750){
+    currentlyCounting = false;
   }
-  //Serial.println(count);
 
   // // after leaving the counting state, we write our LED's according to the count, and allow them to shine for half a second. after that, they are all turned off (when the count returns to 0).
-  if (count == 1 && !counting) {
+  if (lineCount == 1 && !currentlyCounting) {
     digitalWrite(ledPinRed, HIGH);
-    led_blink_time = millis();
+    ledBlinkingTimer = millis();
     Serial.println("we hit for red");
-    count = 0;
+    lineCount = 0;
   }
-  else if (count >= 2 && !counting) {
+  else if (lineCount >= 2 && !currentlyCounting) {
     digitalWrite(ledPinGreen, HIGH);
-    led_blink_time = millis();
+    ledBlinkingTimer = millis();
     Serial.println("we hit for green");
-    count = 0;
+    lineCount = 0;
   }
-  else if (!counting){
-    count = 0;
+  else if (!currentlyCounting){
+    lineCount = 0;
   }
 
-  if (t - led_blink_time > 500 && count == 0){
+  if (currentTime - ledBlinkingTimer > 500 && lineCount == 0){
     digitalWrite(ledPinRed, LOW);
     digitalWrite(ledPinGreen, LOW);
   }

@@ -1,6 +1,15 @@
-int ledPinRed = 11;      // the number of the red LED pin
-int ledPinGreen = 12;    // the number of the green LED pin
-int irSensorPin0 = 36;  // the number of the IR sensor pin
-int right_sensor = 38;
-int left_sensor = 34;
-int Fire_detector=6;
+/*
+This is the definition of every pin that is put into our ardunio. it includes the 'addresses' that the servos 
+are using, which are not pins in our ardunio but locally accessed addresses on the servo driver
+*/
+
+#define frontIRSensor 6
+#define ledPinRed 11
+#define ledPinGreen 12
+#define rightFloorSensor 38
+#define middleFloorSensor 36
+#define leftFloorSensor 34
+
+#define leftServoPin 9
+#define rightServoPin 10
+#define ladderServoPin 11
