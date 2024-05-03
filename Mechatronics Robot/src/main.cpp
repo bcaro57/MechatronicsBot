@@ -26,7 +26,17 @@ int rightSpeed = left_StoppedSpeed;
 int leftSpeed = right_StoppedSpeed;
 
 // 'currentTime' keeps the time of our system
-unsigned long currentTime = 0;
+long currentTime = 0;
+
+long lineTimer = 0;
+long ledBlinkingTimer = 0;
+bool currentlyCounting = false;
+bool hasSeenLine = false;
+int lineCount = 0;
+
+long fireTimer = 0;
+int upPosition = 1000;
+int downPosition = 1900;
 
 // Servo initialization
 Adafruit_PWMServoDriver servo = Adafruit_PWMServoDriver();
@@ -145,9 +155,6 @@ void moveMotors(int leftInput,int rightInput){
   servo.writeMicroseconds(rightServoPin, rightSpeed);
 }
 
-unsigned long fireTimer = 0;
-int upPosition = 1000;
-int downPosition = 1900;
 /*
 This function is used for us to detect the IR signal from the 'fire', and respond accordingly by moving our 'ladder'.
 */ 
@@ -166,11 +173,6 @@ void detectFire(){
   // Serial.println((currentTime - fireTimer));
 }
 
-unsigned long lineTimer = 0;
-unsigned long ledBlinkingTimer = 0;
-bool currentlyCounting = false;
-bool hasSeenLine = false;
-int lineCount = 0;
 /*
 This function is used for us to count the lines and determine whether they are a double or a single line.
 */ 
