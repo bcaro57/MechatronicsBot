@@ -70,7 +70,8 @@ Data_Package data;
 void receiveData();
 void moveMotors(int leftInput,int rightInput);
 void detectFire();
-void countLines();
+int countLines();
+void homingSequence();
 
 
 void setup() {
@@ -95,6 +96,8 @@ void setup() {
   servo.setOscillatorFrequency(27000000);
   servo.setPWMFreq(SERVO_FREQ);  
   delay(10);
+
+  // homingSequence();
 }
 
 void loop() {
@@ -177,8 +180,14 @@ void detectFire(){
 
 /*
 This function is used for us to count the lines and determine whether they are a double or a single line.
+
+the return statment works as follows -- 
+  0: no lines have been counted
+  1: one line has been counted
+  2+: two lines have been counted
+  -1: we are out of bounds
 */ 
-void countLines(){
+int countLines(){
   if (digitalRead(middleFloorSensor) == LOW && !hasSeenLine) {
     currentlyCounting = true;
     lineTimer = millis();
@@ -207,6 +216,8 @@ void countLines(){
   
   if (outOfBounds){
     analogWrite(ledPinBlue, 255); // for some reason this LED is dim with a digitalWrite, but this makes it much brighter
+    lineCount = -1;
+    return lineCount;
     if(printBoundaryError){
       Serial.println("we are out of bounds");
       printBoundaryError = false;
@@ -233,4 +244,20 @@ void countLines(){
     digitalWrite(ledPinRed, LOW);
     digitalWrite(ledPinGreen, LOW);
   }
- }
+  return lineCount;
+}
+
+/*
+This function currently does nothing, but I hope to flesh it out
+*/
+void homingSequence(){
+  Serial.println("starting homing sequence");
+  while (countLines() == 0){
+    Serial.println(countLines());
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + 50);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - 50);
+  }
+  servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+  servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+  Serial.println("finished homing sequence");
+}
