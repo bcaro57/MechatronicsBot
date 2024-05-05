@@ -32,6 +32,8 @@ long lineTimer = 0;
 long ledBlinkingTimer = 0;
 bool currentlyCounting = false;
 bool hasSeenLine = false;
+bool outOfBounds = false;
+bool printBoundaryError = false;
 int lineCount = 0;
 
 long fireTimer = 0;
@@ -81,7 +83,7 @@ void setup() {
   // Radio setup
   Serial.begin(9600);
   if (!radio.begin()) {
-    Serial.println(F("radio hardware is not responding!!"));
+    Serial.println(("radio hardware is not responding!!"));
     while (1) {}  // hold in infinite loop
   }
   radio.openReadingPipe(0, address); // 00002
@@ -106,10 +108,10 @@ void loop() {
   //   delay(500);
   // }
 
-  Receive_data();
-  Move_Motors(data.Lefty,data.Righty);
-  counting_lines();
-  Detect_Fire();
+  // receiveData();
+  // moveMotors(data.Lefty,data.Righty);
+  countLines();
+  // detectFire();
 }
 
 void receiveData(){
@@ -183,16 +185,34 @@ void countLines(){
     hasSeenLine = true;
   }
   if (digitalRead(middleFloorSensor) == HIGH && hasSeenLine){
-    lineCount += 1;
-    hasSeenLine = false;
-    delay(50);
+    if (!outOfBounds){
+      lineCount += 1;
+      hasSeenLine = false;
+      delay(50);
+    }
+    else{
+      digitalWrite(ledPinBlue, LOW);
+      outOfBounds = false;
+      hasSeenLine = false;
+    }
   }
 
   if (currentTime - lineTimer > 750){
+    if(lineCount == 0 && currentlyCounting){
+      outOfBounds = true;
+      printBoundaryError = true;
+    }
     currentlyCounting = false;
   }
-
-  // // after leaving the counting state, we write our LED's according to the count, and allow them to shine for half a second. after that, they are all turned off (when the count returns to 0).
+  
+  if (outOfBounds){
+    analogWrite(ledPinBlue, 255); // for some reason this LED is dim with a digitalWrite, but this makes it much brighter
+    if(printBoundaryError){
+      Serial.println("we are out of bounds");
+      printBoundaryError = false;
+    }
+  }
+  // after leaving the counting state, we write our LED's according to the count, and allow them to shine for half a second. after that, they are all turned off (when the count returns to 0).
   if (lineCount == 1 && !currentlyCounting) {
     digitalWrite(ledPinRed, HIGH);
     ledBlinkingTimer = millis();

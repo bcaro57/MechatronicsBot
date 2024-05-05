@@ -6,6 +6,7 @@ are using, which are not pins in our ardunio but locally accessed addresses on t
 #define frontIRSensor 6
 #define ledPinRed 11
 #define ledPinGreen 12
+#define ledPinBlue 13
 #define rightFloorSensor 38
 #define middleFloorSensor 36
 #define leftFloorSensor 34
