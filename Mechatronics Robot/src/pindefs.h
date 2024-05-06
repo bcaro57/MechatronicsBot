@@ -3,6 +3,7 @@ This is the definition of every pin that is put into our ardunio. it includes th
 are using, which are not pins in our ardunio but locally accessed addresses on the servo driver
 */
 
+#define buttonPin 5
 #define frontIRSensor 6
 #define ledPinRed 11
 #define ledPinGreen 12

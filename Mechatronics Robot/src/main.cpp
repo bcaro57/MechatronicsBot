@@ -40,6 +40,8 @@ long fireTimer = 0;
 int upPosition = 1000;
 int downPosition = 1900;
 
+bool buttonPressed = false;
+
 // Servo initialization
 Adafruit_PWMServoDriver servo = Adafruit_PWMServoDriver();
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
@@ -72,6 +74,7 @@ void moveMotors(int leftInput,int rightInput);
 void detectFire();
 int countLines();
 void homingSequence();
+void buttonState();
 
 
 void setup() {
@@ -80,6 +83,7 @@ void setup() {
   pinMode(ledPinGreen, OUTPUT);  // initialize the green LED pin as an output
   pinMode(middleFloorSensor, INPUT);  // initialize the IR sensor pin as an input
   pinMode(frontIRSensor, INPUT);  // initialize the IR sensor pin as an input
+  pinMode(buttonPin, INPUT);      // initialize the button pin as an input
 
   // Radio setup
   Serial.begin(9600);
@@ -113,7 +117,13 @@ void loop() {
 
   // receiveData();
   // moveMotors(data.Lefty,data.Righty);
-  countLines();
+
+  buttonState();
+
+  if (buttonPressed == true) {
+    countLines();
+  }
+
   // detectFire();
 }
 
@@ -260,4 +270,32 @@ void homingSequence(){
   servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
   servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
   Serial.println("finished homing sequence");
+}
+
+/* 
+This function is used to read the button state and alter the buttonPressed flag depending upon
+if the button has been pressed previously or not.
+*/
+void buttonState() {
+
+  // Sets buttonPressed to true if the button is pressed and previously was false
+  if (digitalRead(buttonPin) == HIGH && buttonPressed == false) {
+    Serial.println("Button Pressed - Begining Control Loop");
+    delay(500);
+    Serial.print("Initial State: ");
+    Serial.print(buttonPressed);
+    buttonPressed = true;
+    Serial.print(", Final State: ");
+    Serial.println(buttonPressed);
+  } // Sets buttonPressed to false if the button is pressed and previously was true
+  else if (digitalRead(buttonPin) == HIGH && buttonPressed == true) {
+    Serial.println("Button Pressed - Pausing Control Loop");
+    delay(500);
+    Serial.print("Initial State: ");
+    Serial.print(buttonPressed);
+    buttonPressed = false;
+    Serial.print(", Final State: ");
+    Serial.println(buttonPressed);
+  }
+
 }
