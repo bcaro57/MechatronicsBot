@@ -4,7 +4,9 @@
 #include <Adafruit_PWMServoDriver.h>
 
 #include "pindefs.h"
-
+//Ultra sonic Stuff
+long duration;
+double distance;
 
 // These variables were determined based on some testing of the motors
 int left_LowerStopLimit = 1434;
@@ -110,6 +112,7 @@ void setup() {
 }
 
 void loop() {
+
   currentTime = millis();
   // calibration sequence - only used prior to actual testing
 
@@ -421,4 +424,30 @@ void homingSequence(){
         break;
     }
   }
+}
+
+
+void Detect_box(){
+  duration=0;
+  int compare=0;
+  for (int i=0;i<10;i++){
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+  // Sets the trigPin on HIGH state for 10 micro seconds
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+
+      compare = pulseIn(echoPin, HIGH);
+      if(compare>duration){
+        duration=compare;
+      }
+    
+  // Calculating the distance
+    distance = duration * 0.034 / 2*0.393701;
+  }
+    Serial.print("Distance: ");
+    Serial.println(distance);
+    return(distance);
 }
