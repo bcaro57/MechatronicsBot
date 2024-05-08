@@ -307,8 +307,8 @@ int slowSpeed = 50;
 int calibrationState = SYSTEM_START;
 long leftTurnTime = 0;
 long reverseTime = 0;
-int turnLength = 2000;
-int backupLength = 1000;
+long turnLength = 2100;
+long backupLength = 1000;
 /*
 This function currently homes the robot to the bottom left corner. It has to be oriented facing the back out of bounds line to start.
 */
@@ -333,7 +333,7 @@ void homingSequence(){
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
           delay(2000);
-          Serial.println("now turning left");
+          Serial.println("now backing up");
           reverseTime = millis();
           calibrationState = FIRST_BACK_UP;
         }
@@ -354,10 +354,12 @@ void homingSequence(){
         if(currentTime - reverseTime > backupLength){
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-          delay(2000);
+          delay(1000);
+          Serial.println("now turning");
           leftTurnTime = millis();
           calibrationState = FIRST_TURN_LEFT;
         }
+        break;
       case FIRST_TURN_LEFT:
         // turn left
         servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + slowSpeed);
@@ -365,7 +367,7 @@ void homingSequence(){
         if (currentTime - leftTurnTime > turnLength){
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-          delay(2000);
+          delay(1000);
           Serial.println("now looking for the left edge");
           calibrationState = DETECT_LEFT_EDGE;
         }
@@ -377,7 +379,8 @@ void homingSequence(){
         if (countLines() == -1){
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-          delay(2000);
+          delay(1000);
+          Serial.println("now backing up");
           reverseTime = millis();
           calibrationState = SECOND_BACK_UP;
         }
@@ -389,10 +392,12 @@ void homingSequence(){
         if(currentTime - reverseTime > backupLength){
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-          delay(2000);
+          delay(1000);
+          Serial.println("now turning");
           leftTurnTime = millis();
           calibrationState = SECOND_TURN_LEFT;
         }
+        break;
       case SECOND_TURN_LEFT:
         // turn left
         servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + slowSpeed);
@@ -400,8 +405,8 @@ void homingSequence(){
         if (currentTime - leftTurnTime > turnLength){
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-          delay(2000);
-          Serial.println("now looking for the left edge");
+          delay(500);
+          Serial.println("finished orienting");
           calibrationState = ORIENT_FINAL;
         }
         break;
@@ -413,11 +418,11 @@ void homingSequence(){
           digitalWrite(ledPinRed, HIGH);
           digitalWrite(ledPinGreen, HIGH);
           digitalWrite(ledPinBlue, HIGH);
-          delay(500);
+          delay(300);
           digitalWrite(ledPinRed, LOW);
           digitalWrite(ledPinGreen, LOW);
           digitalWrite(ledPinBlue, LOW);
-          delay(500);
+          delay(300);
         } 
         Serial.println("finished homing sequence :)");
         calibrated = true;
