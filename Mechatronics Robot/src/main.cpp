@@ -7,10 +7,10 @@
 
 
 // These variables were determined based on some testing of the motors
-int left_LowerStopLimit = 1438;
-int left_UpperStopLimit = 1487;
-int right_LowerStopLimit = 1434;
-int right_UpperStopLimit = 1482;
+int left_LowerStopLimit = 1434;
+int left_UpperStopLimit = 1496;
+int right_LowerStopLimit = 1428;
+int right_UpperStopLimit = 1487;
 
 // These give us our "stopped speed" for the left and right servo, which allows us to fine tune the straight driving capabilities
 int left_StoppedSpeed = (left_UpperStopLimit + left_LowerStopLimit)/2;
@@ -21,7 +21,7 @@ int right_StoppedSpeed = (right_UpperStopLimit + right_LowerStopLimit)/2;
 variables to create forward and backward motion (which is written in microseconds of pwm signal). 'rightSpeed' and 
 'leftSpeed' are fed to the motors for how fast they should go
 */
-int runSpeed = 120;
+int runSpeed = 50;
 int rightSpeed = left_StoppedSpeed;
 int leftSpeed = right_StoppedSpeed;
 
@@ -101,18 +101,23 @@ void setup() {
   servo.setPWMFreq(SERVO_FREQ);  
   delay(10);
 
-  // homingSequence();
+  servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+  servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+  while (buttonPressed == false){
+    buttonState();
+  }
+  homingSequence();
 }
 
 void loop() {
   currentTime = millis();
   // calibration sequence - only used prior to actual testing
 
-  // pwm.writeMicroseconds(9, 1444);
-  // for (int i=1420;i<1490;i++){
-  //   pwm.writeMicroseconds(10, i);
+  // servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+  // for (int i=1410;i<1510;i++){
+  //   servo.writeMicroseconds(leftServoPin, i);
   //   Serial.println(i);
-  //   delay(500);
+  //   delay(1000);
   // }
 
   // receiveData();
@@ -121,7 +126,7 @@ void loop() {
   buttonState();
 
   if (buttonPressed == true) {
-    countLines();
+    Serial.println(countLines());
   }
 
   // detectFire();
@@ -227,11 +232,11 @@ int countLines(){
   if (outOfBounds){
     analogWrite(ledPinBlue, 255); // for some reason this LED is dim with a digitalWrite, but this makes it much brighter
     lineCount = -1;
-    return lineCount;
     if(printBoundaryError){
       Serial.println("we are out of bounds");
       printBoundaryError = false;
     }
+    return lineCount;
   }
   // after leaving the counting state, we write our LED's according to the count, and allow them to shine for half a second. after that, they are all turned off (when the count returns to 0).
   if (lineCount == 1 && !currentlyCounting) {
@@ -255,21 +260,6 @@ int countLines(){
     digitalWrite(ledPinGreen, LOW);
   }
   return lineCount;
-}
-
-/*
-This function currently does nothing, but I hope to flesh it out
-*/
-void homingSequence(){
-  Serial.println("starting homing sequence");
-  while (countLines() == 0){
-    Serial.println(countLines());
-    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + 50);
-    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - 50);
-  }
-  servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-  servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-  Serial.println("finished homing sequence");
 }
 
 /* 
@@ -298,4 +288,137 @@ void buttonState() {
     Serial.println(buttonPressed);
   }
 
+}
+
+#define SYSTEM_START 0
+#define DETECT_BOTTOM_EDGE 1
+#define FIRST_BACK_UP 2
+#define FIRST_TURN_LEFT 3
+#define DETECT_LEFT_EDGE 4
+#define SECOND_BACK_UP 5
+#define SECOND_TURN_LEFT 6
+#define ORIENT_FINAL 7
+
+bool calibrated = false;
+int slowSpeed = 50;
+int calibrationState = SYSTEM_START;
+long leftTurnTime = 0;
+long reverseTime = 0;
+int turnLength = 2000;
+int backupLength = 1000;
+/*
+This function currently homes the robot to the bottom left corner. It has to be oriented facing the back out of bounds line to start.
+*/
+void homingSequence(){
+  Serial.println("starting homing sequence");
+  while (!calibrated){
+    currentTime = millis();
+    switch(calibrationState){
+      case SYSTEM_START:
+        // initialize our motors to be stopped
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+        delay(2000);
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + slowSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - slowSpeed);
+        calibrationState = DETECT_BOTTOM_EDGE;
+        break;
+      case DETECT_BOTTOM_EDGE:
+        // drive and check for the bottom edge
+        
+        if (countLines() == -1){
+          servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+          servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+          delay(2000);
+          Serial.println("now turning left");
+          reverseTime = millis();
+          calibrationState = FIRST_BACK_UP;
+        }
+        // could make it more robust by adding logic for passing a single line or a double line
+        else if (countLines() == 1){
+          // turn 180
+          Serial.print("");
+        }
+        else if (countLines() == 2){
+          // turn 90
+          Serial.print("");
+        }
+        break;
+      case FIRST_BACK_UP:
+      // back up
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed - slowSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed + slowSpeed);
+        if(currentTime - reverseTime > backupLength){
+          servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+          servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+          delay(2000);
+          leftTurnTime = millis();
+          calibrationState = FIRST_TURN_LEFT;
+        }
+      case FIRST_TURN_LEFT:
+        // turn left
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + slowSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed + slowSpeed);
+        if (currentTime - leftTurnTime > turnLength){
+          servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+          servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+          delay(2000);
+          Serial.println("now looking for the left edge");
+          calibrationState = DETECT_LEFT_EDGE;
+        }
+        break;
+      case DETECT_LEFT_EDGE:
+        // drive until the left edge is detected
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + slowSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - slowSpeed);
+        if (countLines() == -1){
+          servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+          servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+          delay(2000);
+          reverseTime = millis();
+          calibrationState = SECOND_BACK_UP;
+        }
+        break;
+      case SECOND_BACK_UP:
+      // back up
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed - slowSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed + slowSpeed);
+        if(currentTime - reverseTime > backupLength){
+          servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+          servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+          delay(2000);
+          leftTurnTime = millis();
+          calibrationState = SECOND_TURN_LEFT;
+        }
+      case SECOND_TURN_LEFT:
+        // turn left
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + slowSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed + slowSpeed);
+        if (currentTime - leftTurnTime > turnLength){
+          servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+          servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+          delay(2000);
+          Serial.println("now looking for the left edge");
+          calibrationState = ORIENT_FINAL;
+        }
+        break;
+      case ORIENT_FINAL:
+        // orient the robot to face forwar
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+        for (int i = 0; i < 3; i++){
+          digitalWrite(ledPinRed, HIGH);
+          digitalWrite(ledPinGreen, HIGH);
+          digitalWrite(ledPinBlue, HIGH);
+          delay(500);
+          digitalWrite(ledPinRed, LOW);
+          digitalWrite(ledPinGreen, LOW);
+          digitalWrite(ledPinBlue, LOW);
+          delay(500);
+        } 
+        Serial.println("finished homing sequence :)");
+        calibrated = true;
+        break;
+    }
+  }
 }
