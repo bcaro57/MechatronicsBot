@@ -77,6 +77,7 @@ void detectFire();
 int countLines();
 void homingSequence();
 void buttonState();
+double detectBox();
 
 
 void setup() {
@@ -86,6 +87,8 @@ void setup() {
   pinMode(middleFloorSensor, INPUT);  // initialize the IR sensor pin as an input
   pinMode(frontIRSensor, INPUT);  // initialize the IR sensor pin as an input
   pinMode(buttonPin, INPUT);      // initialize the button pin as an input
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
 
   // Radio setup
   Serial.begin(9600);
@@ -109,11 +112,13 @@ void setup() {
     buttonState();
   }
   homingSequence();
+  detectBox();
 }
 
 void loop() {
 
   currentTime = millis();
+  buttonState();
   // calibration sequence - only used prior to actual testing
 
   // servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
@@ -126,10 +131,9 @@ void loop() {
   // receiveData();
   // moveMotors(data.Lefty,data.Righty);
 
-  buttonState();
-
   if (buttonPressed == true) {
-    Serial.println(countLines());
+    // Serial.println(countLines());
+    // detectBox();
   }
 
   // detectFire();
@@ -432,7 +436,7 @@ void homingSequence(){
 }
 
 
-void Detect_box(){
+double detectBox(){
   duration=0;
   int compare=0;
   for (int i=0;i<10;i++){
@@ -454,5 +458,21 @@ void Detect_box(){
   }
     Serial.print("Distance: ");
     Serial.println(distance);
-    return(distance);
+
+  if (distance > 20.0){
+      digitalWrite(ledPinRed,HIGH);
+      digitalWrite(ledPinGreen,HIGH);
+      analogWrite(ledPinBlue, 255);
+    }
+  else if (distance <= 20.0 && distance > 10.0){
+      digitalWrite(ledPinRed,HIGH);
+      digitalWrite(ledPinGreen,HIGH);
+      digitalWrite(ledPinBlue,LOW);
+    }
+  else{
+      digitalWrite(ledPinRed,HIGH);
+      digitalWrite(ledPinGreen,LOW);
+      digitalWrite(ledPinBlue,LOW);
+    }
+    return distance;
 }
