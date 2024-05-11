@@ -84,6 +84,7 @@ void setup() {
   // Pin initialization
   pinMode(ledPinRed, OUTPUT);    // initialize the red LED pin as an output
   pinMode(ledPinGreen, OUTPUT);  // initialize the green LED pin as an output
+  pinMode(ledPinBlue, OUTPUT);
   pinMode(middleFloorSensor, INPUT);  // initialize the IR sensor pin as an input
   pinMode(frontIRSensor, INPUT);  // initialize the IR sensor pin as an input
   pinMode(buttonPin, INPUT);      // initialize the button pin as an input
@@ -108,6 +109,7 @@ void setup() {
 
   servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
   servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+  Serial.println("Ready!");
   while (buttonPressed == false){
     buttonState();
   }
@@ -237,7 +239,7 @@ int countLines(){
   }
   
   if (outOfBounds){
-    analogWrite(ledPinBlue, 255); // for some reason this LED is dim with a digitalWrite, but this makes it much brighter
+    digitalWrite(ledPinBlue, HIGH); // for some reason this LED is dim with a digitalWrite, but this makes it much brighter
     lineCount = -1;
     if(printBoundaryError){
       Serial.println("we are out of bounds");
@@ -462,7 +464,7 @@ double detectBox(){
   if (distance > 20.0){
       digitalWrite(ledPinRed,HIGH);
       digitalWrite(ledPinGreen,HIGH);
-      analogWrite(ledPinBlue, 255);
+      digitalWrite(ledPinBlue, HIGH);
     }
   else if (distance <= 20.0 && distance > 10.0){
       digitalWrite(ledPinRed,HIGH);
