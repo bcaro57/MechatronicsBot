@@ -1,3 +1,6 @@
+#ifndef __PINDEFS__
+#define __PINDEFS__
+
 /*
 This is the definition of every pin that is put into our ardunio. it includes the 'addresses' that the servos 
 are using, which are not pins in our ardunio but locally accessed addresses on the servo driver
@@ -17,3 +20,5 @@ are using, which are not pins in our ardunio but locally accessed addresses on t
 #define ladderServoPin 11
 #define trigPin 22
 #define echoPin 23
+
+#endif
