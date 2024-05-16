@@ -144,7 +144,6 @@ void loop() {
   smart_steering();
   
   if(countLines()==-1){
-    back_up();
     turn_right();
   }
 
@@ -239,7 +238,7 @@ int countLines(){
     }
   }
 
-  if (currentTime - lineTimer > 250){
+  if (currentTime - lineTimer > 400){
     if(lineCount == 0 && currentlyCounting){
       outOfBounds = true;
       printBoundaryError = true;
@@ -516,18 +515,18 @@ void turn_left(){
 void smart_steering(){
   if(digitalRead(rightFloorSensor)==0){
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed-runSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
     Serial.println("right trip");
     
   }
   else if(digitalRead(leftFloorSensor)==0){
-    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed+runSpeed);
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     Serial.println("LEFT trip");
   }
   else{
-    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed+runSpeed);
-    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed-runSpeed);
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
     Serial.println("NO trip");
   }
 
