@@ -23,7 +23,7 @@ int right_StoppedSpeed = (right_UpperStopLimit + right_LowerStopLimit)/2;
 variables to create forward and backward motion (which is written in microseconds of pwm signal). 'rightSpeed' and 
 'leftSpeed' are fed to the motors for how fast they should go
 */
-int runSpeed = 50;
+int runSpeed = 80;
 int rightSpeed = left_StoppedSpeed;
 int leftSpeed = right_StoppedSpeed;
 
@@ -78,7 +78,9 @@ int countLines();
 void homingSequence();
 void buttonState();
 double detectBox();
-
+void turn_left();
+void turn_right();
+void smart_steering();
 
 void setup() {
   // Pin initialization
@@ -113,8 +115,10 @@ void setup() {
   while (buttonPressed == false){
     buttonState();
   }
-  homingSequence();
-  detectBox();
+  //homingSequence();
+  turn_left();
+  delay(500);
+  turn_right();
 }
 
 void loop() {
@@ -135,10 +139,14 @@ void loop() {
 
   if (buttonPressed == true) {
     // Serial.println(countLines());
-    // detectBox();
+     //detectBox();
+  }
+  smart_steering();
+  
+  if(countLines()==-1){
+    turn_right();
   }
 
-  // detectFire();
 }
 
 void receiveData(){
@@ -230,7 +238,7 @@ int countLines(){
     }
   }
 
-  if (currentTime - lineTimer > 750){
+  if (currentTime - lineTimer > 250){
     if(lineCount == 0 && currentlyCounting){
       outOfBounds = true;
       printBoundaryError = true;
@@ -313,7 +321,7 @@ int slowSpeed = 50;
 int calibrationState = SYSTEM_START;
 long leftTurnTime = 0;
 long reverseTime = 0;
-long turnLength = 2100;
+long turnLength = 1700;
 long backupLength = 1000;
 /*
 This function currently homes the robot to the bottom left corner. It has to be oriented facing the back out of bounds line to start.
@@ -477,4 +485,49 @@ double detectBox(){
       digitalWrite(ledPinBlue,LOW);
     }
     return distance;
+}
+
+void turn_right(){
+  currentTime = millis();
+  leftTurnTime = millis();
+      while(currentTime -leftTurnTime < turnLength){
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + slowSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed + slowSpeed);
+        currentTime = millis();
+}
+          servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+          servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+          delay(500);
+}
+
+void turn_left(){
+  currentTime = millis();
+  leftTurnTime = millis();
+      while(currentTime -leftTurnTime < turnLength){
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed - slowSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - slowSpeed);
+        currentTime = millis();
+}
+          servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+          servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+          delay(500);
+}
+void smart_steering(){
+  if(digitalRead(rightFloorSensor)==0){
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed-runSpeed);
+    Serial.println("right trip");
+    
+  }
+  else if(digitalRead(leftFloorSensor)==0){
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed+runSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+    Serial.println("LEFT trip");
+  }
+  else{
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed+runSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed-runSpeed);
+    Serial.println("NO trip");
+  }
+
 }
