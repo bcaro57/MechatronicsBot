@@ -144,6 +144,7 @@ void loop() {
   smart_steering();
   
   if(countLines()==-1){
+    back_up();
     turn_right();
   }
 
@@ -530,4 +531,13 @@ void smart_steering(){
     Serial.println("NO trip");
   }
 
+}
+void back_up(){
+    currentTime = millis();
+    long back_up_time  = millis();
+    while(currentTime -back_up_time < 1000){
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed - slowSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed + slowSpeed);
+        currentTime = millis();
+}
 }
