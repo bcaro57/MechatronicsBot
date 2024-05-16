@@ -7,6 +7,9 @@ const int external_LED = 15;
 const char* ssid = "bens laptop";
 const char* password = "demetrius";
 
+// const char* ssid = "Fios-Y3244";
+// const char* password = "dog0228pub5853mean";
+
 // ------------------------ Initial WiFi Setup ----------------------- //
 /*
 void setup() {
@@ -75,10 +78,10 @@ void setup() {
   WiFi.begin(ssid, password);           // Connect to Wi-Fi network with SSID and password
  
   // Display progress on Serial monitor
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  //   Serial.print(".");
+  // }
  
   // Print local IP address and start web server
   Serial.println("");
@@ -138,6 +141,16 @@ void loop() {
             client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
             client.println(".button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px;");
             client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+            // New stuff for grid
+            client.println("table { border-collapse: collapse; }");
+            client.println("tr { padding: 0; }");
+            client.println("td { width: 64px; height: 64px; padding: 0; text-align: center; vertical-align: center; font-size: 1.5em; position: relative; border-left: 3px solid white; }");
+            client.println("td:before, td:after { content: ''; position: absolute; background-color: white; }");
+            client.println("td:before { top: 2px; left: 0; right: 0; height: 2px; }");
+            client.println("td:after { bottom: 2px; left: 0; right: 0; height: 2px; }");
+            client.println("tr:first-child td:before, tr:first-child td:after { bottom: 2px; }");
+            client.println("tr:last-child td:before, tr:last-child td:after { top: 2px; }");
+            client.println(".color1 { background-color: #000000}");
             client.println(".button2 {background-color: #F23A3A;}</style></head>");
  
             // Web Page Heading
@@ -156,7 +169,20 @@ void loop() {
               //picoLEDState is on, display the OFF button
               client.println("<p><a href=\"/led/off\"><button class=\"button button2\">OFF</button></a></p>");
             }
- 
+
+            // grid
+            client.println("<p> Current Grid Status: </p>");
+            // figure out why the top row has two white lines at the top
+            client.println("<table><tbody><tr class=\"box-bottom\"><td class=\"color1\" id=\"11\"></td><td class=\"color1\" id=\"12\"></td><td class=\"color1\" id=\"13\"></td><td class=\"color1\" id=\"14\"></td><td class=\"color1\" id=\"15\"></td><td class=\"color1\" id=\"16\"></td><td class=\"color1\" id=\"17\"></td><td class=\"color1\" id=\"18\"></td></tr>");
+            client.println("<tr class=\"box-bottom\"><td class=\"color1\" id=\"21\"></td><td class=\"color1\" id=\"22\"></td><td class=\"color1\" id=\"23\"></td><td class=\"color1\" id=\"24\"></td><td class=\"color1\" id=\"25\"></td><td class=\"color1\" id=\"26\"></td><td class=\"color1\" id=\"27\"></td><td class=\"color1\" id=\"28\"></td></tr>");
+            client.println("<tr class=\"box-bottom\"><td class=\"color1\" id=\"31\"></td><td class=\"color1\" id=\"32\"></td><td class=\"color1\" id=\"33\"></td><td class=\"color1\" id=\"34\"></td><td class=\"color1\" id=\"35\"></td><td class=\"color1\" id=\"36\"></td><td class=\"color1\" id=\"37\"></td><td class=\"color1\" id=\"38\"></td></tr>");
+            client.println("<tr class=\"box-bottom\"><td class=\"color1\" id=\"41\"></td><td class=\"color1\" id=\"42\"></td><td class=\"color1\" id=\"43\"></td><td class=\"color1\" id=\"44\"></td><td class=\"color1\" id=\"45\"></td><td class=\"color1\" id=\"46\"></td><td class=\"color1\" id=\"47\"></td><td class=\"color1\" id=\"48\"></td></tr>");
+            client.println("<tr class=\"box-bottom\"><td class=\"color1\" id=\"51\"></td><td class=\"color1\" id=\"52\"></td><td class=\"color1\" id=\"53\"></td><td class=\"color1\" id=\"54\"></td><td class=\"color1\" id=\"55\"></td><td class=\"color1\" id=\"56\"></td><td class=\"color1\" id=\"57\"></td><td class=\"color1\" id=\"58\"></td></tr>");
+            client.println("<tr class=\"box-bottom\"><td class=\"color1\" id=\"61\"></td><td class=\"color1\" id=\"62\"></td><td class=\"color1\" id=\"63\"></td><td class=\"color1\" id=\"64\"></td><td class=\"color1\" id=\"65\"></td><td class=\"color1\" id=\"66\"></td><td class=\"color1\" id=\"67\"></td><td class=\"color1\" id=\"68\"></td></tr>");
+            client.println("<tr class=\"box-bottom\"><td class=\"color1\" id=\"71\"></td><td class=\"color1\" id=\"72\"></td><td class=\"color1\" id=\"73\"></td><td class=\"color1\" id=\"74\"></td><td class=\"color1\" id=\"75\"></td><td class=\"color1\" id=\"76\"></td><td class=\"color1\" id=\"77\"></td><td class=\"color1\" id=\"78\"></td></tr>");
+            client.println("<tr class=\"box-bottom\"><td class=\"color1\" id=\"81\"></td><td class=\"color1\" id=\"82\"></td><td class=\"color1\" id=\"83\"></td><td class=\"color1\" id=\"84\"></td><td class=\"color1\" id=\"85\"></td><td class=\"color1\" id=\"86\"></td><td class=\"color1\" id=\"87\"></td><td class=\"color1\" id=\"88\"></td></tr></tbody></table");
+
+
             client.println("</body></html>");
  
             // The HTTP response ends with another blank line
