@@ -2,7 +2,6 @@
 #include <nRF24L01.h>
 #include <RF24.h>
 #include <Adafruit_PWMServoDriver.h>
-
 #include "pindefs.h"
 //Ultra sonic Stuff
 long duration;
@@ -11,11 +10,11 @@ double distance;
 // These variables were determined based on some testing of the motors
 int left_LowerStopLimit = 1434;
 int left_UpperStopLimit = 1496;
-int right_LowerStopLimit = 1428;
-int right_UpperStopLimit = 1487;
+int right_LowerStopLimit = 1430;
+int right_UpperStopLimit = 1489;
 
 // These give us our "stopped speed" for the left and right servo, which allows us to fine tune the straight driving capabilities
-int left_StoppedSpeed = (left_UpperStopLimit + left_LowerStopLimit)/2;
+int left_StoppedSpeed = (left_UpperStopLimit + left_LowerStopLimit)/2 - 5;
 int right_StoppedSpeed = (right_UpperStopLimit + right_LowerStopLimit)/2;
 
 /*
@@ -23,7 +22,7 @@ int right_StoppedSpeed = (right_UpperStopLimit + right_LowerStopLimit)/2;
 variables to create forward and backward motion (which is written in microseconds of pwm signal). 'rightSpeed' and 
 'leftSpeed' are fed to the motors for how fast they should go
 */
-int runSpeed = 80;
+int runSpeed = 70;
 int rightSpeed = left_StoppedSpeed;
 int leftSpeed = right_StoppedSpeed;
 
@@ -67,8 +66,23 @@ struct Data_Package {
   int border = 0;
 };
 
+
 // Create a variable with the above structure
 Data_Package data;
+
+
+int MAP[8][8]={{0,0,0,0,0,0,0,0},
+              {0,0,0,0,0,0,0,0},
+              {0,0,0,0,0,0,0,0},
+              {0,0,0,0,0,0,0,0},
+              {0,0,0,0,0,0,0,0},
+              {0,0,0,0,0,0,0,0},
+              {0,0,0,0,0,0,0,0},
+              {1,0,0,0,0,0,0,0}};
+int Current_X=0;
+int Current_Y=0;
+char Orientation= 'F';
+
 
 // Initializing our functions 
 void receiveData();
@@ -81,6 +95,11 @@ double detectBox();
 void turn_left();
 void turn_right();
 void smart_steering();
+void back_up();
+void update_position(int Lines);
+void update_orientation(char current_O, char rotate);
+void Lawn_Mow_Alogrithm();
+void Go_to_Position(int Desired_X, int Desired_Y);
 
 void setup() {
   // Pin initialization
@@ -119,6 +138,10 @@ void setup() {
   turn_left();
   delay(500);
   turn_right();
+  delay(500);
+  Go_to_Position(3, 0);
+  delay(500);
+  Go_to_Position(3, 3);
 }
 
 void loop() {
@@ -140,13 +163,120 @@ void loop() {
   if (buttonPressed == true) {
     // Serial.println(countLines());
      //detectBox();
+   // Lawn_Mow_Alogrithm();
   }
-  smart_steering();
-  
-  if(countLines()==-1){
-    turn_right();
+  else{
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+
+    Serial.print(Current_X);
+    Serial.print("   ");
+    Serial.print(Current_Y);
+    Serial.print("   ");
+    Serial.println(Orientation);
+
   }
 
+
+}
+int Lines = 0;
+void Lawn_Mow_Alogrithm(){
+    smart_steering();
+    Lines=countLines();
+    //update_position(Lines);
+    if(Lines==-1){
+      back_up();
+      turn_right();
+      back_up();
+    }
+}
+void Go_to_Position(int Desired_X, int Desired_Y){
+  int error_X=Desired_X-Current_X;
+  int error_Y=Desired_Y-Current_Y;
+  if(error_X<0){
+    while(Orientation!='L'){
+      turn_right();
+    }
+  }
+  else if(error_X>0){
+    while(Orientation!='R'){
+      turn_left();
+  }
+}
+while(Current_X!=Desired_X){
+    currentTime = millis();
+    smart_steering();
+    Lines=countLines();
+}
+servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+if(error_Y<0){
+    while(Orientation!='B'){
+      turn_right();
+    }
+  }
+  else if(error_Y>0){
+    while(Orientation!='F'){
+      turn_left();
+  }
+}
+while(Current_Y!=Desired_Y){
+    currentTime = millis();
+    smart_steering();
+    Lines=countLines();
+}
+servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+}
+void update_orientation(char current_O, char rotate){
+  if(current_O=='F'){
+    if(rotate=='L'){
+      Orientation='L';
+    }
+    else if(rotate=='R'){
+      Orientation='R';
+    }
+  }
+  else if(current_O=='B'){
+    if(rotate=='L'){
+      Orientation='R';
+    }
+    else if(rotate=='R'){
+      Orientation='L';
+    }
+  }
+  else if(current_O=='L'){
+     if(rotate=='L'){
+      Orientation='B';
+    }
+    else if(rotate=='R'){
+      Orientation='F';
+    }
+
+  }
+  else if(current_O=='R'){
+    if(rotate=='L'){
+      Orientation='F';
+    }
+    else if(rotate=='R'){
+      Orientation='B';
+    }
+  }
+}
+
+void update_position(int Lines){
+    if(Lines==1 && Orientation=='L'){
+      Current_X=Current_X-1;
+    }
+    else if(Lines==1 && Orientation=='R'){
+      Current_X=Current_X+1;
+    }
+    else if(Lines==2 && Orientation=='F'){
+      Current_Y=Current_Y+1;
+    }
+    else if(Lines==2 && Orientation=='B'){
+      Current_Y=Current_Y-1;
+    }
 }
 
 void receiveData(){
@@ -226,6 +356,7 @@ int countLines(){
     hasSeenLine = true;
   }
   if (digitalRead(middleFloorSensor) == HIGH && hasSeenLine){
+    lineTimer = millis();
     if (!outOfBounds){
       lineCount += 1;
       hasSeenLine = false;
@@ -238,7 +369,7 @@ int countLines(){
     }
   }
 
-  if (currentTime - lineTimer > 400){
+  if (currentTime - lineTimer > 325){
     if(lineCount == 0 && currentlyCounting){
       outOfBounds = true;
       printBoundaryError = true;
@@ -260,12 +391,14 @@ int countLines(){
     digitalWrite(ledPinRed, HIGH);
     ledBlinkingTimer = millis();
     Serial.println("we hit for red");
+    update_position(1);
     lineCount = 0;
   }
   else if (lineCount >= 2 && !currentlyCounting) {
     digitalWrite(ledPinGreen, HIGH);
     ledBlinkingTimer = millis();
     Serial.println("we hit for green");
+    update_position(2);
     lineCount = 0;
   }
   else if (!currentlyCounting){
@@ -317,12 +450,12 @@ void buttonState() {
 #define ORIENT_FINAL 7
 
 bool calibrated = false;
-int slowSpeed = 50;
+int slowSpeed = 45;
 int calibrationState = SYSTEM_START;
 long leftTurnTime = 0;
 long reverseTime = 0;
-long turnLength = 1700;
-long backupLength = 1000;
+long turnLength = 2300;
+long backupLength = 1300;
 /*
 This function currently homes the robot to the bottom left corner. It has to be oriented facing the back out of bounds line to start.
 */
@@ -498,6 +631,7 @@ void turn_right(){
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
           delay(500);
+  update_orientation(Orientation,'R');
 }
 
 void turn_left(){
@@ -511,32 +645,44 @@ void turn_left(){
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
           delay(500);
+  update_orientation(Orientation,'L');
 }
 void smart_steering(){
-  if(digitalRead(rightFloorSensor)==0){
-    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
-    Serial.println("right trip");
-    
-  }
-  else if(digitalRead(leftFloorSensor)==0){
-    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
-    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-    Serial.println("LEFT trip");
+  if(digitalRead(middleFloorSensor)==1){
+    if(digitalRead(rightFloorSensor)==0){
+      servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+      servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
+      // Serial.println("right trip");
+      
+    }
+    else if(digitalRead(leftFloorSensor)==0){
+      servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
+      servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+      // Serial.println("LEFT trip");
+    }
+    else{
+      servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
+      servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
+      // Serial.println("NO trip");
+    }
   }
   else{
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
-    Serial.println("NO trip");
   }
 
 }
+
+long back_up_time;
 void back_up(){
     currentTime = millis();
-    long back_up_time  = millis();
-    while(currentTime -back_up_time < 1000){
+    back_up_time  = millis();
+    while(currentTime -back_up_time < backupLength){
         servo.writeMicroseconds(leftServoPin, left_StoppedSpeed - slowSpeed);
         servo.writeMicroseconds(rightServoPin, right_StoppedSpeed + slowSpeed);
         currentTime = millis();
-}
+    }
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+    delay(500);
 }
