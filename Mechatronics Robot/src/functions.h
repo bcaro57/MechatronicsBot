@@ -49,6 +49,8 @@ void update_orientation(char current_O, char rotate);
 void Lawn_Mow_Alogrithm();
 void Go_to_Position(int Desired_X, int Desired_Y);
 void Put_out_Fire(char set_off);
+void Move_forward_once();
+void box_in_front();
 
 void turn_left() {
     currentTime = millis();
@@ -605,10 +607,9 @@ void Put_out_Fire(char set_off){
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     delay(1000);
-    while(1){
+    back_up();
+    turn_right();
     servo.writeMicroseconds(ladderServoPin, upPosition);
-    }
-
    }
   else if( set_off=='R'){
     turn_right();
@@ -622,9 +623,9 @@ void Put_out_Fire(char set_off){
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     delay(1000);
-    while(1){
+    back_up();
+    turn_right();
     servo.writeMicroseconds(ladderServoPin, upPosition);
-    }
    }
     else if(set_off=='F'){
     double distance2box=100;
@@ -637,8 +638,101 @@ void Put_out_Fire(char set_off){
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     delay(1000);
-    while(1){
+    back_up();
     servo.writeMicroseconds(ladderServoPin, upPosition);
-    }
    }
+}
+void box_in_front(){
+  double Close2Box=detectBox_Loop();
+  if(Close2Box<=3){
+    turn_left();
+    //Close2Box=detectBox();
+    Move_forward_once();
+    back_up();
+    turn_right();
+    Move_forward_once();
+    Move_forward_once();
+    back_up();
+    turn_right();
+    Move_forward_once();
+    Move_forward_once();
+    back_up();
+    turn_right();
+    Move_forward_once();
+    Move_forward_once();
+    back_up();
+    turn_right();
+    Move_forward_once();
+  }
+}
+
+/*
+Description: Used to check if the robot is on a border based on current position
+returns:
+L=Left Border
+R=Right Border
+T=Top Border
+B=Bottom Border
+C=not on borders
+*/
+char on_border(int curr_x, int curr_y){
+  if(curr_x==0 && curr_y>=0 && curr_y<=7){
+    return'L';
+  }
+  else if(curr_x==7 && curr_y>=0 && curr_y<=7){
+    return'R';
+  }
+  else if(curr_y==0 && curr_x>=0 && curr_x<=7){
+    return'B';
+  }
+  else if(curr_y==7 && curr_x>=0 && curr_x<=7){
+    return'T';
+  }
+  else{
+    return 'C';
+  }
+}
+/*
+Moves forward on spot using the counting lines functinos and depedning on the orientation
+*/
+void Move_forward_once(){
+if(Orientation=='F' || Orientation=='B'){
+  currentTime = millis();
+  char set_off=detectFire();
+  for (int i=0;i<2;i++){
+     Lines=10;
+     delay(100);
+        while(Lines!=2){
+        smart_steering();
+        currentTime = millis();
+        Lines=countLines();
+        set_off=detectFire();
+        Put_out_Fire(set_off);
+        Serial.println(i);
+        Serial.println( Lines);
+
+}
+ delay(100);
+  }
+ 
+}
+if(Orientation=='L' || Orientation=='R'){
+  currentTime = millis();
+  //Lines=countLines();
+  char set_off=detectFire();
+  for (int i=0;i<2;i++){
+     Lines=10;
+  while(Lines!=1){
+        currentTime = millis();
+        smart_steering();
+        Lines=countLines();
+        set_off=detectFire();
+        Put_out_Fire(set_off);
+
+}
+ delay(100);
+  }
+}
+delay(300);
+Serial.println("forward once");
 }
