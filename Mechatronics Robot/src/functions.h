@@ -10,7 +10,7 @@ Adafruit_PWMServoDriver servo = Adafruit_PWMServoDriver();
 
 // Radio initialization
 RF24 radio(7, 8); // CE, CSN
-const byte address[6] = "00001";
+const byte addresses[][6] = {"00001", "00002"};
 
 /* 
 This is the package of data from our controller. It includes 'Lefty' and 'Righty', which are values
@@ -21,11 +21,13 @@ The max size of this struct is 32 bytes - that is the NRF24L01 buffer limit.
 */
 
 struct Data_Package {
-  int Lefty = 0;
-  int Righty = 0;
-  int Single = 0;
-  int Double = 0;
-  int border = 0;
+  int leftJoystick = 512;
+  int rightJoystick = 512;
+  int servoJoystick = 512;
+
+  int xPosition = 0;
+  int yPosition = 0;
+  char orientation = 'F';
 };
 
 // Create a variable with the above structure
@@ -37,7 +39,7 @@ void turn_right();
 void back_up();
 void moveMotors(int leftInput,int rightInput);
 int countLines();
-void receiveData();
+void transcieveData();
 char detectFire();
 void homingSequence();
 void buttonState();
@@ -190,16 +192,26 @@ void update_position(int Lines) {
     }
 }
 
-void receiveData() {
-    delay(5);
-    radio.startListening();
-    if (radio.available()) {
-        while (radio.available()) {
-            radio.read(&data, sizeof(Data_Package)); // Read the whole data and store it into the 'data' structure
-            // Serial.print("Lefty: ");
-            // Serial.println(data.Righty);
-        }
+void transcieveData() {
+  delay(2);
+  radio.startListening();
+  if(radio.available()) {
+    while (radio.available()) {
+      radio.read(&data, sizeof(Data_Package));
     }
+  }
+  else {
+  }
+
+
+  delay(2);
+  radio.stopListening();
+  countLines();
+  data.xPosition = Current_X;
+  data.yPosition = Current_Y;
+  data.orientation = Orientation;
+  radio.write(&data, sizeof(Data_Package));
+
 }
 
 /*

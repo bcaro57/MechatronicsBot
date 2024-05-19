@@ -1,14 +1,19 @@
 #include <Arduino.h>
+#include <Servo.h>
 #include <nRF24L01.h>
 #include <RF24.h>
 #include <Adafruit_PWMServoDriver.h>
 #include "pindefs.h"
 #include "functions.h"
+
+Servo myServo;
+
 void setup() {
   // Pin initialization
   pinMode(ledPinRed, OUTPUT);    // initialize the red LED pin as an output
   pinMode(ledPinGreen, OUTPUT);  // initialize the green LED pin as an output
   pinMode(ledPinBlue, OUTPUT);
+  pinMode(ledPinWhite, OUTPUT);
   pinMode(middleFloorSensor, INPUT);  // initialize the IR sensor pin as an input
   pinMode(frontIRSensor, INPUT);  // initialize the IR sensor pin as an input
   pinMode(LeftIRSensor, INPUT);
@@ -17,6 +22,8 @@ void setup() {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
+  myServo.attach(A1);
+
   // Radio setup
 
   Serial.begin(9600);
@@ -24,10 +31,9 @@ void setup() {
     Serial.println(("radio hardware is not responding!!"));
     while (1) {}  // hold in infinite loop
   }
-
-  radio.openReadingPipe(0, address); // 00002
-  radio.setPayloadSize(sizeof(Data_Package)); 
-  radio.setPALevel(RF24_PA_MIN);
+  radio.openWritingPipe(addresses[0]); // 00001
+  radio.openReadingPipe(1, addresses[1]); // 00002
+  radio.setPALevel(RF24_PA_HIGH);
 
   // Servo setup
   servo.begin();
@@ -68,30 +74,20 @@ void loop() {
   //   delay(1000);
   // }
 
-   
-  // moveMotors(data.Lefty,data.Righty);
 
   if (buttonPressed == true) {
-    // Serial.println(countLines());
-     //detectBox();
-   // Lawn_Mow_Alogrithm();
-   //receiveData();
-   //moveMotors(data.Lefty,data.Righty);
-   smart_steering();
-   char set_off=detectFire();
-   Put_out_Fire(set_off);
-  //box_in_front();
-  countLines();
-  }
-  else{
+    transcieveData();
+    digitalWrite(ledPinWhite, LOW);
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-
-    Serial.print(Current_X);
-    Serial.print("   ");
-    Serial.print(Current_Y);
-    Serial.print("   ");
-    Serial.println(Orientation);
-
+    myServo.write(90);
+  }
+  else{
+    transcieveData();
+    digitalWrite(ledPinWhite, HIGH);
+    int speed = 75;
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + map(data.leftJoystick, 0, 1023, -speed, speed));
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - map(data.rightJoystick, 0, 1023, -speed, speed));
+    myServo.write(map(data.servoJoystick, 0, 1023, 90, 180));
   }
 }

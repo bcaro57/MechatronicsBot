@@ -22,19 +22,20 @@ const byte addresses[][6] = {"00001", "00002"};
 
 // Max size of this struct is 32 bytes - NRF24L01 buffer limit
 struct Data_Package {
-  int leftJoystick = 0;
-  int rightJoystick = 0;
-  int servoJoystick = 0;
+  int leftJoystick = 512;
+  int rightJoystick = 512;
+  int servoJoystick = 512;
 
   int xPosition = 0;
   int yPosition = 0;
   char orientation = 'F';
-
-  int xPrev = 0;
-  int yPrev = 0;
-  char orientationPrev = 'F';
 };
+
 Data_Package data;
+
+int xPrev = 0;
+int yPrev = 0;
+char orientationPrev = 'F';
 
 void setup() {
   pinMode(RADIO_LED, OUTPUT);
@@ -48,7 +49,7 @@ void setup() {
   radio.begin();
   radio.openWritingPipe(addresses[1]); // 00002
   radio.openReadingPipe(1, addresses[0]); // 00001
-  radio.setPALevel(RF24_PA_MAX);
+  radio.setPALevel(RF24_PA_HIGH);
 }
 
 void loop() {
@@ -59,11 +60,16 @@ void loop() {
   radio.stopListening();
   data.leftJoystick = analogRead(LEFT_JOYSTICK_PIN);
   data.rightJoystick = analogRead(RIGHT_JOYSTICK_PIN);
-  data.servoJoystick = map(analogRead(SERVO_JOYSTICK_PIN), 0, 1023, 0, 180);
-  data.xPrev = data.xPosition;
-  data.yPrev = data.yPosition;
-  data.orientationPrev = data.orientation;
-  radio.write(&data, sizeof(data));
+  data.servoJoystick = analogRead(SERVO_JOYSTICK_PIN);
+
+  // Serial.print("    Right Stick: ");
+  // Serial.print(data.leftJoystick);
+  // Serial.print("  | Left Stick: ");
+  // Serial.print(data.rightJoystick);
+  // Serial.print("  | Servo: ");
+  // Serial.println(data.servoJoystick);
+
+  radio.write(&data, sizeof(Data_Package));
 
   delay(2);
   radio.startListening();
@@ -73,10 +79,14 @@ void loop() {
   else {
     digitalWrite(RADIO_LED, LOW);
   }
-  // while (!radio.available());
-  radio.read(&data, sizeof(data));
+  while (!radio.available());
+  radio.read(&data, sizeof(Data_Package));
 
-  if ( (data.xPosition != data.xPrev) || (data.yPosition != data.yPrev) || (data.orientation != data.orientationPrev) ){
+  if ( (data.xPosition != xPrev) || (data.yPosition != yPrev) || (data.orientation != orientationPrev) ){
+    xPrev = data.xPosition;
+    yPrev = data.yPosition;
+    orientationPrev = data.orientation;
+
     Serial.print("    x-position: ");
     Serial.print(data.xPosition);
     Serial.print("  | y-position: ");
