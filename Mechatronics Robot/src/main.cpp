@@ -4,7 +4,6 @@
 #include <Adafruit_PWMServoDriver.h>
 #include "pindefs.h"
 #include "functions.h"
-
 void setup() {
   // Pin initialization
   pinMode(ledPinRed, OUTPUT);    // initialize the red LED pin as an output
@@ -12,6 +11,8 @@ void setup() {
   pinMode(ledPinBlue, OUTPUT);
   pinMode(middleFloorSensor, INPUT);  // initialize the IR sensor pin as an input
   pinMode(frontIRSensor, INPUT);  // initialize the IR sensor pin as an input
+  pinMode(LeftIRSensor, INPUT);
+  pinMode(RightIRSensor, INPUT);
   pinMode(buttonPin, INPUT);      // initialize the button pin as an input
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
@@ -43,9 +44,10 @@ void setup() {
   delay(500);
   turn_right();
   delay(500);
-  Go_to_Position(3, 0);
-  delay(500);
-  Go_to_Position(3, 3);
+  //Go_to_Position(3, 0);
+  //delay(500);
+  //Go_to_Position(3, 3);
+  
 }
 
 void loop() {
@@ -61,13 +63,65 @@ void loop() {
   //   delay(1000);
   // }
 
-  // receiveData();
+   
   // moveMotors(data.Lefty,data.Righty);
 
   if (buttonPressed == true) {
     // Serial.println(countLines());
      //detectBox();
    // Lawn_Mow_Alogrithm();
+   //receiveData();
+   //moveMotors(data.Lefty,data.Righty);
+   smart_steering();
+   char set_off=detectFire();
+   if( set_off=='L'){
+    turn_left();
+    double distance2box=100;
+    while(distance2box>2){
+      distance2box=detectBox_Loop();
+      smart_steering();
+      Serial.println(distance2box);
+    }
+    servo.writeMicroseconds(ladderServoPin, downPosition);
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+    delay(1000);
+    while(1){
+    servo.writeMicroseconds(ladderServoPin, upPosition);
+    }
+
+   }
+  else if( set_off=='R'){
+    turn_right();
+    double distance2box=100;
+    while(distance2box>2){
+      distance2box=detectBox_Loop();
+      smart_steering();
+      Serial.println(distance2box);
+    }
+    servo.writeMicroseconds(ladderServoPin, downPosition);
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+    delay(1000);
+    while(1){
+    servo.writeMicroseconds(ladderServoPin, upPosition);
+    }
+   }
+    else if(set_off=='F'){
+    double distance2box=100;
+    while(distance2box>2){
+      distance2box=detectBox_Loop();
+      smart_steering();
+      Serial.println(distance2box);
+    }
+    servo.writeMicroseconds(ladderServoPin, downPosition);
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+    delay(1000);
+    while(1){
+    servo.writeMicroseconds(ladderServoPin, upPosition);
+    }
+   }
   }
   else{
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);

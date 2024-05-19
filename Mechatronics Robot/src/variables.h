@@ -41,9 +41,11 @@ bool outOfBounds = false;
 bool printBoundaryError = false;
 int lineCount = 0;
 
-long fireTimer = 0;
+long fireTimerForward = 0;
+long fireTimerLeft = 0;
+long fireTimerRight = 0;
 int upPosition = 1000;
-int downPosition = 1900;
+int downPosition = 1400;
 
 int MAP[8][8]={{0,0,0,0,0,0,0,0},
               {0,0,0,0,0,0,0,0},

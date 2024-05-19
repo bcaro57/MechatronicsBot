@@ -38,10 +38,11 @@ void back_up();
 void moveMotors(int leftInput,int rightInput);
 int countLines();
 void receiveData();
-void detectFire();
+char detectFire();
 void homingSequence();
 void buttonState();
 double detectBox();
+double detectBox_Loop();
 void smart_steering();
 void update_position(int Lines);
 void update_orientation(char current_O, char rotate);
@@ -96,32 +97,43 @@ void Go_to_Position(int Desired_X, int Desired_Y) {
         while(Orientation!='L') {
             turn_right();
         }
-    } else if (error_X>0) {
-        while(Orientation!='R') {
-            turn_left();
-        }
-    }
-    while(Current_X!=Desired_X){
+        while(Current_X!=Desired_X-1 ||Lines==-1){
         currentTime = millis();
         smart_steering();
         Lines=countLines();
     }
+    } else if (error_X>0) {
+        while(Orientation!='R') {
+            turn_left();
+        }
+        while(Current_X!=Desired_X+1||Lines==-1){
+        currentTime = millis();
+        smart_steering();
+        Lines=countLines();
+    }
+    }
+
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     if(error_Y<0) {
         while(Orientation!='B') {
             turn_right();
         }
+        while(Current_Y!= Desired_Y-1|| Lines==-1){
+        currentTime = millis();
+        smart_steering();
+        Lines=countLines();
+    }
     }
     else if(error_Y>0) {
         while(Orientation!='F') {
         turn_left();
         }
-    }
-    while(Current_Y!=Desired_Y){
+        while(Current_Y!= Desired_Y+1|| Lines==-1){
         currentTime = millis();
         smart_steering();
         Lines=countLines();
+    }
     }
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
@@ -222,18 +234,47 @@ void moveMotors(int leftInput,int rightInput) {
 /*
 This function is used for us to detect the IR signal from the 'fire', and respond accordingly by moving our 'ladder'.
 */ 
-void detectFire() {
-    int fireState = digitalRead(frontIRSensor);
-    if (fireState == 0) {
-        fireTimer = millis();
+/*
+char detectFire_prev() {
+    int fireStateForward = digitalRead(frontIRSensor);
+    int fireStateLeft = digitalRead(frontIRSensor);
+    int fireStateRight = digitalRead(frontIRSensor);
+    if (fireStateForward == 0) {
+        fireTimerForward = millis();
+    }
+    if (fireStateLeft == 0) {
+        fireTimerLeft = millis();
+    }
+    if (fireStateRight == 0) {
+        fireTimerRight = millis();
     }
 
-    if( (currentTime - fireTimer) < 1000){
-        servo.writeMicroseconds(ladderServoPin, downPosition);
+    if( (currentTime - fireTimerForward) < 1000){
+        return('f');
+    }    if( (currentTime - fireTimerLeft) < 1000){
+         return('L');
+    }     if( (currentTime - fireTimerRight) < 1000){
+         return('R');
     } else {
         servo.writeMicroseconds(ladderServoPin, upPosition);
     }
   // Serial.println((currentTime - fireTimer));
+}
+*/
+char detectFire() {
+    int fireStateForward = digitalRead(frontIRSensor);
+    int fireStateLeft = digitalRead(LeftIRSensor);
+    int fireStateRight = digitalRead(RightIRSensor);
+    if (fireStateForward == 0) {
+      return 'F';
+    }
+    if (fireStateLeft == 0) {
+        return 'L';
+    }
+    if (fireStateRight == 0) {
+        return 'R';
+    }
+    return 'O';
 }
 
 
@@ -501,7 +542,19 @@ double detectBox() {
     return distance;
 
 }
-
+double detectBox_Loop() {
+   duration=0;
+        digitalWrite(trigPin, LOW);
+        delayMicroseconds(2);
+        // Sets the trigPin on HIGH state for 10 micro seconds
+        digitalWrite(trigPin, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(trigPin, LOW);
+        // Reads the echoPin, returns the sound wave travel time in microseconds
+        duration = pulseIn(echoPin, HIGH);
+        distance = duration * 0.034 / 2*0.393701;
+        return(distance);
+}
 
 void smart_steering() {
     if (digitalRead(middleFloorSensor)==1) {

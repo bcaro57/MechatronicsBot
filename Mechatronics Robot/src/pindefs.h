@@ -8,6 +8,8 @@ are using, which are not pins in our ardunio but locally accessed addresses on t
 
 #define buttonPin 35
 #define frontIRSensor 6
+#define LeftIRSensor 4
+#define RightIRSensor 5
 #define ledPinRed 47
 #define ledPinGreen 45
 #define ledPinBlue 43
