@@ -48,6 +48,7 @@ void update_position(int Lines);
 void update_orientation(char current_O, char rotate);
 void Lawn_Mow_Alogrithm();
 void Go_to_Position(int Desired_X, int Desired_Y);
+void Put_out_Fire(char set_off);
 
 void turn_left() {
     currentTime = millis();
@@ -589,4 +590,55 @@ void Lawn_Mow_Alogrithm() {
       turn_right();
       back_up();
     }
+}
+
+void Put_out_Fire(char set_off){
+  if( set_off=='L'){
+    turn_left();
+    double distance2box=100;
+    while(distance2box>2){
+      distance2box=detectBox_Loop();
+      smart_steering();
+      Serial.println(distance2box);
+    }
+    servo.writeMicroseconds(ladderServoPin, downPosition);
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+    delay(1000);
+    while(1){
+    servo.writeMicroseconds(ladderServoPin, upPosition);
+    }
+
+   }
+  else if( set_off=='R'){
+    turn_right();
+    double distance2box=100;
+    while(distance2box>2){
+      distance2box=detectBox_Loop();
+      smart_steering();
+      Serial.println(distance2box);
+    }
+    servo.writeMicroseconds(ladderServoPin, downPosition);
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+    delay(1000);
+    while(1){
+    servo.writeMicroseconds(ladderServoPin, upPosition);
+    }
+   }
+    else if(set_off=='F'){
+    double distance2box=100;
+    while(distance2box>2){
+      distance2box=detectBox_Loop();
+      smart_steering();
+      Serial.println(distance2box);
+    }
+    servo.writeMicroseconds(ladderServoPin, downPosition);
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+    delay(1000);
+    while(1){
+    servo.writeMicroseconds(ladderServoPin, upPosition);
+    }
+   }
 }

@@ -74,54 +74,7 @@ void loop() {
    //moveMotors(data.Lefty,data.Righty);
    smart_steering();
    char set_off=detectFire();
-   if( set_off=='L'){
-    turn_left();
-    double distance2box=100;
-    while(distance2box>2){
-      distance2box=detectBox_Loop();
-      smart_steering();
-      Serial.println(distance2box);
-    }
-    servo.writeMicroseconds(ladderServoPin, downPosition);
-    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-    delay(1000);
-    while(1){
-    servo.writeMicroseconds(ladderServoPin, upPosition);
-    }
-
-   }
-  else if( set_off=='R'){
-    turn_right();
-    double distance2box=100;
-    while(distance2box>2){
-      distance2box=detectBox_Loop();
-      smart_steering();
-      Serial.println(distance2box);
-    }
-    servo.writeMicroseconds(ladderServoPin, downPosition);
-    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-    delay(1000);
-    while(1){
-    servo.writeMicroseconds(ladderServoPin, upPosition);
-    }
-   }
-    else if(set_off=='F'){
-    double distance2box=100;
-    while(distance2box>2){
-      distance2box=detectBox_Loop();
-      smart_steering();
-      Serial.println(distance2box);
-    }
-    servo.writeMicroseconds(ladderServoPin, downPosition);
-    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-    delay(1000);
-    while(1){
-    servo.writeMicroseconds(ladderServoPin, upPosition);
-    }
-   }
+   Put_out_Fire(set_off);
   }
   else{
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
