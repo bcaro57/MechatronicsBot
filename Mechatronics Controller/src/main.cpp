@@ -60,6 +60,14 @@ void loop() {
   data.leftJoystick = analogRead(LEFT_JOYSTICK_PIN);
   data.rightJoystick = analogRead(RIGHT_JOYSTICK_PIN);
   data.servoJoystick = map(analogRead(SERVO_JOYSTICK_PIN), 0, 1023, 0, 180);
+
+  Serial.print("    Right Stick: ");
+  Serial.print(data.leftJoystick);
+  Serial.print("  | Left Stick: ");
+  Serial.print(data.rightJoystick);
+  Serial.print("  | Servo: ");
+  Serial.println(data.servoJoystick);
+
   data.xPrev = data.xPosition;
   data.yPrev = data.yPosition;
   data.orientationPrev = data.orientation;
