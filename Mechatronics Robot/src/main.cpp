@@ -48,17 +48,14 @@ void setup() {
     buttonState();
   }
   //homingSequence();
-  turn_left();
-  delay(500);
-  turn_right();
-  delay(500);
-  Move_forward_once();
-  delay(1000);
-  back_up();
-  //Go_to_Position(3, 0);
-  //delay(500);
-  //Go_to_Position(3, 3);
-  
+  digitalWrite(ledPinRed, HIGH); digitalWrite(ledPinGreen, HIGH); digitalWrite(ledPinBlue, HIGH); digitalWrite(ledPinWhite, HIGH);
+  delay(250);
+  digitalWrite(ledPinRed, LOW); digitalWrite(ledPinGreen, LOW); digitalWrite(ledPinBlue, LOW); digitalWrite(ledPinWhite, LOW);
+  delay(250);
+  digitalWrite(ledPinRed, HIGH); digitalWrite(ledPinGreen, HIGH); digitalWrite(ledPinBlue, HIGH); digitalWrite(ledPinWhite, HIGH);
+  delay(250);
+  digitalWrite(ledPinRed, LOW); digitalWrite(ledPinGreen, LOW); digitalWrite(ledPinBlue, LOW); digitalWrite(ledPinWhite, LOW);
+  delay(250);
 }
 
 void loop() {
@@ -78,9 +75,13 @@ void loop() {
   if (buttonPressed == true) {
     transcieveData();
     digitalWrite(ledPinWhite, LOW);
+    smart_steering();
+    box_in_front();
+    /*
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     myServo.write(90);
+    */
   }
   else{
     transcieveData();
