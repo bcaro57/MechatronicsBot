@@ -1,106 +1,98 @@
 #include <Arduino.h>
-
-/*
-  Arduino Wireless Communication Tutorial
-      Example 1 - Transmitter Code
-
-  by Dejan Nedelkovski, www.HowToMechatronics.com
-
-  Library: TMRh20/RF24, https://github.com/tmrh20/RF24/
-*/
-
-#include <SPI.h>
-#include <nRF24L01.h>
 #include <RF24.h>
-
-RF24 radio(7, 8); // CE, CSN
-
-const byte address[6] = "00001";
-
-// Max size of this struct is 32 bytes - NRF24L01 buffer limit
-struct Data_Package {
-  int Lefty=698;
-  int Righty = 0;
-  int Single = 0;
-  int Double = 0;
-  int border=0;
-};
-
-Data_Package data; // Create a variable with the above structure
-
-void setup() {
-  Serial.begin(9600);
-  /*
-    if (!radio.begin()) {
-    Serial.println(F("radio hardware is not responding!!"));
-    while (1) {}  // hold in infinite loop
-  }
-  */
- radio.openWritingPipe(address); // 00002
-  radio.setPayloadSize(sizeof(Data_Package)); 
-  radio.setPALevel(RF24_PA_MIN); 
-  radio.stopListening();
-}
-
-void loop() {
-  // Send the whole data from the structure to the receiver
-
-   //delay(5);
-  radio.stopListening();
-  //radio.startListening();
-  data.Lefty = analogRead(A0);
-  data.Righty = analogRead(A1);
-  radio.write(&data, sizeof(Data_Package));
-  Serial.println(data.Lefty);
-  delay(5);
-   //
-  /*
-  radio.startListening();
-  while (!radio.available());
-  radio.read(&data, sizeof(Data_Package));
-  radio.startListening();
-  */
-  /*
-  Serial.print("Lefty: ");
-  Serial.print(data.Lefty);
-  Serial.print(" Righty: ");
-  Serial.print(data.Righty);
-  Serial.print(" Single: ");
-  Serial.print(data.Single);
-  Serial.print(" Double: ");
-  Serial.print(data.Double);
-  Serial.print(" border: ");
-  Serial.println(data.border); 
-*/
-}
 
 /*
 * Arduino Wireless Communication Tutorial
-*     Example 1 - Transmitter Code
+*     Example 2 - Transmitter Code
 *                
 * by Dejan Nedelkovski, www.HowToMechatronics.com
 * 
 * Library: TMRh20/RF24, https://github.com/tmrh20/RF24/
 */
-/*
-#include <SPI.h>
-#include <nRF24L01.h>
-#include <RF24.h>
+
+
+#define RADIO_LED 41
+#define LEFT_JOYSTICK_PIN A0
+#define RIGHT_JOYSTICK_PIN A1
+#define SERVO_JOYSTICK_PIN A2
+
 
 RF24 radio(7, 8); // CE, CSN
+const byte addresses[][6] = {"00001", "00002"};
 
-const byte address[6] = "00001";
+// Max size of this struct is 32 bytes - NRF24L01 buffer limit
+struct Data_Package {
+  int leftJoystick = 0;
+  int rightJoystick = 0;
+  int servoJoystick = 0;
+
+  int xPosition = 0;
+  int yPosition = 0;
+  char orientation = 'F';
+
+  int xPrev = 0;
+  int yPrev = 0;
+  char orientationPrev = 'F';
+};
+Data_Package data;
 
 void setup() {
+  pinMode(RADIO_LED, OUTPUT);
+  pinMode(LEFT_JOYSTICK_PIN, INPUT);
+  pinMode(RIGHT_JOYSTICK_PIN, INPUT);
+  pinMode(SERVO_JOYSTICK_PIN, INPUT);
+
+  Serial.begin(9600);
+  Serial.println("Ready to go!"); Serial.println(); Serial.println();
+  
   radio.begin();
-  radio.openWritingPipe(address);
-  radio.setPALevel(RF24_PA_MIN);
-  radio.stopListening();
+  radio.openWritingPipe(addresses[1]); // 00002
+  radio.openReadingPipe(1, addresses[0]); // 00001
+  radio.setPALevel(RF24_PA_MAX);
 }
 
 void loop() {
-  const char text[] = "Hello World";
-  radio.write(&text, sizeof(text));
-  delay(1000);
+  /*
+  Radio Communication - happens at the beginning of every loop
+  */
+  delay(2);
+  radio.stopListening();
+  data.leftJoystick = analogRead(LEFT_JOYSTICK_PIN);
+  data.rightJoystick = analogRead(RIGHT_JOYSTICK_PIN);
+  data.servoJoystick = map(analogRead(SERVO_JOYSTICK_PIN), 0, 1023, 0, 180);
+  data.xPrev = data.xPosition;
+  data.yPrev = data.yPosition;
+  data.orientationPrev = data.orientation;
+  radio.write(&data, sizeof(data));
+
+  delay(2);
+  radio.startListening();
+  if(radio.available()) {
+    digitalWrite(RADIO_LED, HIGH);
+  }
+  else {
+    digitalWrite(RADIO_LED, LOW);
+  }
+  // while (!radio.available());
+  radio.read(&data, sizeof(data));
+
+  if ( (data.xPosition != data.xPrev) || (data.yPosition != data.yPrev) || (data.orientation != data.orientationPrev) ){
+    Serial.print("    x-position: ");
+    Serial.print(data.xPosition);
+    Serial.print("  | y-position: ");
+    Serial.print(data.yPosition);
+    Serial.print("  | Orientation: ");
+    if(data.orientation == 'F') {
+      Serial.println("Forward");
+    }
+    else if(data.orientation == 'L') {
+      Serial.println("Left");
+    }
+    else if(data.orientation == 'B') {
+      Serial.println("Backward");
+    }
+    else if(data.orientation == 'R') {
+      Serial.println("Right");
+    }
+  }
 }
-*/
