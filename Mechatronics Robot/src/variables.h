@@ -1,4 +1,13 @@
-//Ultra sonic Stuff
+#define SYSTEM_START 0
+#define DETECT_BOTTOM_EDGE 1
+#define FIRST_BACK_UP 2
+#define FIRST_TURN_LEFT 3
+#define DETECT_LEFT_EDGE 4
+#define SECOND_BACK_UP 5
+#define SECOND_TURN_LEFT 6
+#define ORIENT_FINAL 7
+
+// Ultra sonic Stuff
 long duration;
 double distance;
 
@@ -51,15 +60,6 @@ char Orientation= 'F';
 int Lines = 0;
 
 bool buttonPressed = false;
-
-#define SYSTEM_START 0
-#define DETECT_BOTTOM_EDGE 1
-#define FIRST_BACK_UP 2
-#define FIRST_TURN_LEFT 3
-#define DETECT_LEFT_EDGE 4
-#define SECOND_BACK_UP 5
-#define SECOND_TURN_LEFT 6
-#define ORIENT_FINAL 7
 
 bool calibrated = false;
 int slowSpeed = 45;

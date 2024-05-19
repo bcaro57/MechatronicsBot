@@ -49,37 +49,37 @@ void Lawn_Mow_Alogrithm();
 void Go_to_Position(int Desired_X, int Desired_Y);
 
 void turn_left() {
-  currentTime = millis();
-  leftTurnTime = millis();
-      while(currentTime -leftTurnTime < turnLength){
+    currentTime = millis();
+    leftTurnTime = millis();
+    while(currentTime -leftTurnTime < turnLength) {
         servo.writeMicroseconds(leftServoPin, left_StoppedSpeed - slowSpeed);
         servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - slowSpeed);
         currentTime = millis();
-}
-          servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-          servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-          delay(500);
-  update_orientation(Orientation,'L');
+    }
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+    delay(500);
+    update_orientation(Orientation,'L');
 }
 
 void turn_right() {
-  currentTime = millis();
-  leftTurnTime = millis();
-      while(currentTime -leftTurnTime < turnLength){
+    currentTime = millis();
+    leftTurnTime = millis();
+    while(currentTime -leftTurnTime < turnLength) {
         servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + slowSpeed);
         servo.writeMicroseconds(rightServoPin, right_StoppedSpeed + slowSpeed);
         currentTime = millis();
-}
-          servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-          servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-          delay(500);
-  update_orientation(Orientation,'R');
+    }
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+    delay(500);
+    update_orientation(Orientation,'R');
 }
 
 void back_up() {
     currentTime = millis();
     back_up_time  = millis();
-    while(currentTime -back_up_time < backupLength){
+    while(currentTime -back_up_time < backupLength) {
         servo.writeMicroseconds(leftServoPin, left_StoppedSpeed - slowSpeed);
         servo.writeMicroseconds(rightServoPin, right_StoppedSpeed + slowSpeed);
         currentTime = millis();
@@ -89,133 +89,129 @@ void back_up() {
     delay(500);
 }
 
-void Go_to_Position(int Desired_X, int Desired_Y){
-  int error_X=Desired_X-Current_X;
-  int error_Y=Desired_Y-Current_Y;
-  if(error_X<0){
-    while(Orientation!='L'){
-      turn_right();
+void Go_to_Position(int Desired_X, int Desired_Y) {
+    int error_X=Desired_X-Current_X;
+    int error_Y=Desired_Y-Current_Y;
+    if (error_X<0) {
+        while(Orientation!='L') {
+            turn_right();
+        }
+    } else if (error_X>0) {
+        while(Orientation!='R') {
+            turn_left();
+        }
     }
-  }
-  else if(error_X>0){
-    while(Orientation!='R'){
-      turn_left();
-  }
-}
-while(Current_X!=Desired_X){
-    currentTime = millis();
-    smart_steering();
-    Lines=countLines();
-}
-servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-if(error_Y<0){
-    while(Orientation!='B'){
-      turn_right();
+    while(Current_X!=Desired_X){
+        currentTime = millis();
+        smart_steering();
+        Lines=countLines();
     }
-  }
-  else if(error_Y>0){
-    while(Orientation!='F'){
-      turn_left();
-  }
-}
-while(Current_Y!=Desired_Y){
-    currentTime = millis();
-    smart_steering();
-    Lines=countLines();
-}
-servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-}
-
-void update_orientation(char current_O, char rotate){
-  if(current_O=='F'){
-    if(rotate=='L'){
-      Orientation='L';
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+    if(error_Y<0) {
+        while(Orientation!='B') {
+            turn_right();
+        }
     }
-    else if(rotate=='R'){
-      Orientation='R';
+    else if(error_Y>0) {
+        while(Orientation!='F') {
+        turn_left();
+        }
     }
-  }
-  else if(current_O=='B'){
-    if(rotate=='L'){
-      Orientation='R';
+    while(Current_Y!=Desired_Y){
+        currentTime = millis();
+        smart_steering();
+        Lines=countLines();
     }
-    else if(rotate=='R'){
-      Orientation='L';
-    }
-  }
-  else if(current_O=='L'){
-     if(rotate=='L'){
-      Orientation='B';
-    }
-    else if(rotate=='R'){
-      Orientation='F';
-    }
-
-  }
-  else if(current_O=='R'){
-    if(rotate=='L'){
-      Orientation='F';
-    }
-    else if(rotate=='R'){
-      Orientation='B';
-    }
-  }
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
 }
 
-void update_position(int Lines){
-    if(Lines==1 && Orientation=='L'){
+void update_orientation(char current_O, char rotate) {
+    if (current_O=='F') {
+        if (rotate=='L') {
+            Orientation='L';
+        } else if (rotate=='R') {
+            Orientation='R';
+        }
+    } else if (current_O=='B') {
+        if (rotate=='L') {
+            Orientation='R';
+        }
+        else if (rotate=='R') {
+            Orientation='L';
+        }
+    }
+    else if (current_O=='L') {
+        if (rotate=='L') {
+            Orientation='B';
+        }
+        else if (rotate=='R') {
+            Orientation='F';
+        }
+    }
+    else if (current_O=='R') {
+        if (rotate=='L') {
+            Orientation='F';
+        }
+        else if (rotate=='R') {
+            Orientation='B';
+        }
+    }
+}
+
+void update_position(int Lines) {
+    if (Lines==1 && Orientation=='L') {
       Current_X=Current_X-1;
     }
-    else if(Lines==1 && Orientation=='R'){
+    else if (Lines==1 && Orientation=='R') {
       Current_X=Current_X+1;
     }
-    else if(Lines==2 && Orientation=='F'){
+    else if (Lines==2 && Orientation=='F') {
       Current_Y=Current_Y+1;
     }
-    else if(Lines==2 && Orientation=='B'){
+    else if (Lines==2 && Orientation=='B') {
       Current_Y=Current_Y-1;
     }
 }
 
-void receiveData(){
-  delay(5);
-  radio.startListening();
-  if (radio.available()) {
-    while (radio.available()) {
-    radio.read(&data, sizeof(Data_Package)); // Read the whole data and store it into the 'data' structure
-    // Serial.print("Lefty: ");
-    // Serial.println(data.Righty);
+void receiveData() {
+    delay(5);
+    radio.startListening();
+    if (radio.available()) {
+        while (radio.available()) {
+            radio.read(&data, sizeof(Data_Package)); // Read the whole data and store it into the 'data' structure
+            // Serial.print("Lefty: ");
+            // Serial.println(data.Righty);
+        }
     }
-  }
 }
 
 /*
 This function is used for us to control the speeds of our two wheels, labeled as left and right.
 */ 
-void moveMotors(int leftInput,int rightInput){
-  // augment the right wheel speed according to the input
-  if (leftInput>700){
-    leftSpeed = left_StoppedSpeed + runSpeed;
-  }
-  else if (leftInput<200){
-    leftSpeed = left_StoppedSpeed - runSpeed;
-  }
-  else{
-    leftSpeed = left_StoppedSpeed;
-  }
-  
-  // augment the right wheel speed according to the input
-  if (rightInput>700){
-    rightSpeed = right_StoppedSpeed - runSpeed;
-  }
-  else if (rightInput<200){
+void moveMotors(int leftInput,int rightInput) {
+    // augment the right wheel speed according to the input
+    if (leftInput>700) {
+        leftSpeed = left_StoppedSpeed + runSpeed;
+    }
+    else if (leftInput<200) {
+        leftSpeed = left_StoppedSpeed - runSpeed;
+    }
+    else {
+        leftSpeed = left_StoppedSpeed;
+    }
+
+    // augment the right wheel speed according to the input
+    if (rightInput>700) {
+        rightSpeed = right_StoppedSpeed - runSpeed;
+    }
+    else if (rightInput<200) {
     rightSpeed = right_StoppedSpeed + runSpeed;
-  }
-  else{
-    rightSpeed = right_StoppedSpeed;
-  }
+    }
+    else {
+        rightSpeed = right_StoppedSpeed;
+    }
 
   // actuate the servo motors
   servo.writeMicroseconds(leftServoPin, leftSpeed);
@@ -226,18 +222,17 @@ void moveMotors(int leftInput,int rightInput){
 /*
 This function is used for us to detect the IR signal from the 'fire', and respond accordingly by moving our 'ladder'.
 */ 
-void detectFire(){
-  int fireState = digitalRead(frontIRSensor);
-  if(fireState == 0){
-    fireTimer = millis();
-  }
+void detectFire() {
+    int fireState = digitalRead(frontIRSensor);
+    if (fireState == 0) {
+        fireTimer = millis();
+    }
 
-  if( (currentTime - fireTimer) < 1000){
-    servo.writeMicroseconds(ladderServoPin, downPosition);
-  }
-  else{
-    servo.writeMicroseconds(ladderServoPin, upPosition);
-  }
+    if( (currentTime - fireTimer) < 1000){
+        servo.writeMicroseconds(ladderServoPin, downPosition);
+    } else {
+        servo.writeMicroseconds(ladderServoPin, upPosition);
+    }
   // Serial.println((currentTime - fireTimer));
 }
 
@@ -252,65 +247,66 @@ the return statment works as follows --
   -1: we are out of bounds
 */ 
 int countLines(){
-  if (digitalRead(middleFloorSensor) == LOW && !hasSeenLine) {
-    currentlyCounting = true;
-    lineTimer = millis();
-    hasSeenLine = true;
-  }
-  if (digitalRead(middleFloorSensor) == HIGH && hasSeenLine){
-    lineTimer = millis();
-    if (!outOfBounds){
-      lineCount += 1;
-      hasSeenLine = false;
-      delay(50);
+    if (digitalRead(middleFloorSensor) == LOW && !hasSeenLine) {
+        currentlyCounting = true;
+        lineTimer = millis();
+        hasSeenLine = true;
     }
-    else{
-      digitalWrite(ledPinBlue, LOW);
-      outOfBounds = false;
-      hasSeenLine = false;
+    if (digitalRead(middleFloorSensor) == HIGH && hasSeenLine) {
+        lineTimer = millis();
+        if (!outOfBounds) {
+            lineCount += 1;
+            hasSeenLine = false;
+            delay(50);
+        }
+        else {
+            digitalWrite(ledPinBlue, LOW);
+            outOfBounds = false;
+            hasSeenLine = false;
+        }
     }
-  }
+    
+    if (currentTime - lineTimer > 325) {
+        if (lineCount == 0 && currentlyCounting) {
+            outOfBounds = true;
+            printBoundaryError = true;
+        }
+        currentlyCounting = false;
+    }
+    
+    if (outOfBounds) {
+        digitalWrite(ledPinBlue, HIGH); // for some reason this LED is dim with a digitalWrite, but this makes it much brighter
+        lineCount = -1;
+        if (printBoundaryError) {
+            Serial.println("we are out of bounds");
+            printBoundaryError = false;
+        }
+        return lineCount;
+    }
 
-  if (currentTime - lineTimer > 325){
-    if(lineCount == 0 && currentlyCounting){
-      outOfBounds = true;
-      printBoundaryError = true;
+    // after leaving the counting state, we write our LED's according to the count, and allow them to shine for half a second. after that, they are all turned off (when the count returns to 0).
+    if (lineCount == 1 && !currentlyCounting) {
+        digitalWrite(ledPinRed, HIGH);
+        ledBlinkingTimer = millis();
+        Serial.println("we hit for red");
+        update_position(1);
+        lineCount = 0;
     }
-    currentlyCounting = false;
-  }
-  
-  if (outOfBounds){
-    digitalWrite(ledPinBlue, HIGH); // for some reason this LED is dim with a digitalWrite, but this makes it much brighter
-    lineCount = -1;
-    if(printBoundaryError){
-      Serial.println("we are out of bounds");
-      printBoundaryError = false;
+    else if (lineCount >= 2 && !currentlyCounting) {
+        digitalWrite(ledPinGreen, HIGH);
+        ledBlinkingTimer = millis();
+        Serial.println("we hit for green");
+        update_position(2);
+        lineCount = 0;
     }
-    return lineCount;
-  }
-  // after leaving the counting state, we write our LED's according to the count, and allow them to shine for half a second. after that, they are all turned off (when the count returns to 0).
-  if (lineCount == 1 && !currentlyCounting) {
-    digitalWrite(ledPinRed, HIGH);
-    ledBlinkingTimer = millis();
-    Serial.println("we hit for red");
-    update_position(1);
-    lineCount = 0;
-  }
-  else if (lineCount >= 2 && !currentlyCounting) {
-    digitalWrite(ledPinGreen, HIGH);
-    ledBlinkingTimer = millis();
-    Serial.println("we hit for green");
-    update_position(2);
-    lineCount = 0;
-  }
-  else if (!currentlyCounting){
-    lineCount = 0;
-  }
-
-  if (currentTime - ledBlinkingTimer > 500 && lineCount == 0){
-    digitalWrite(ledPinRed, LOW);
-    digitalWrite(ledPinGreen, LOW);
-  }
+    else if (!currentlyCounting){
+        lineCount = 0;
+    }
+    
+    if (currentTime - ledBlinkingTimer > 500 && lineCount == 0) {
+        digitalWrite(ledPinRed, LOW);
+        digitalWrite(ledPinGreen, LOW);
+    }
   return lineCount;
 }
 
@@ -467,39 +463,37 @@ void homingSequence() {
 }
 
 double detectBox() {
-  duration=0;
-  int compare=0;
-  for (int i=0;i<10;i++) {
-    digitalWrite(trigPin, LOW);
-    delayMicroseconds(2);
-  // Sets the trigPin on HIGH state for 10 micro seconds
-    digitalWrite(trigPin, HIGH);
-    delayMicroseconds(10);
-    digitalWrite(trigPin, LOW);
-  // Reads the echoPin, returns the sound wave travel time in microseconds
+    duration=0;
+    int compare=0;
+    for (int i=0;i<10;i++) {
+        digitalWrite(trigPin, LOW);
+        delayMicroseconds(2);
+        // Sets the trigPin on HIGH state for 10 micro seconds
+        digitalWrite(trigPin, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(trigPin, LOW);
+        // Reads the echoPin, returns the sound wave travel time in microseconds
 
-      compare = pulseIn(echoPin, HIGH);
-      if(compare>duration) {
-        duration=compare;
-      }
-    
-  // Calculating the distance
-    distance = duration * 0.034 / 2*0.393701;
-  }
+        compare = pulseIn(echoPin, HIGH);
+        if (compare>duration) {
+            duration=compare;
+        }
+        
+        // Calculating the distance
+        distance = duration * 0.034 / 2*0.393701;
+    }
     Serial.print("Distance: ");
     Serial.println(distance);
-
-  if (distance > 20.0){
-      digitalWrite(ledPinRed,HIGH);
-      digitalWrite(ledPinGreen,HIGH);
-      digitalWrite(ledPinBlue, HIGH);
-    }
-  else if (distance <= 20.0 && distance > 10.0){
+    
+    if (distance > 20.0) {
+        digitalWrite(ledPinRed,HIGH);
+        digitalWrite(ledPinGreen,HIGH);
+        digitalWrite(ledPinBlue, HIGH);
+    } else if (distance <= 20.0 && distance > 10.0) {
       digitalWrite(ledPinRed,HIGH);
       digitalWrite(ledPinGreen,HIGH);
       digitalWrite(ledPinBlue,LOW);
-    }
-  else{
+    } else {
       digitalWrite(ledPinRed,HIGH);
       digitalWrite(ledPinGreen,LOW);
       digitalWrite(ledPinBlue,LOW);
@@ -509,37 +503,35 @@ double detectBox() {
 }
 
 
-void smart_steering(){
-  if(digitalRead(middleFloorSensor)==1){
-    if(digitalRead(rightFloorSensor)==0){
-      servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-      servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
-      // Serial.println("right trip");
-      
+void smart_steering() {
+    if (digitalRead(middleFloorSensor)==1) {
+        if (digitalRead(rightFloorSensor)==0) {
+            servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+            servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
+            // Serial.println("right trip");  
+        } 
+        else if (digitalRead(leftFloorSensor)==0) {
+            servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
+            servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+            // Serial.println("LEFT trip");
+        }
+        else {
+            servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
+            servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
+            // Serial.println("NO trip");
+        }
     }
-    else if(digitalRead(leftFloorSensor)==0){
-      servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
-      servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-      // Serial.println("LEFT trip");
+    else {
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
     }
-    else{
-      servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
-      servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
-      // Serial.println("NO trip");
-    }
-  }
-  else{
-    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + runSpeed);
-    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - runSpeed);
-  }
-
 }
 
-void Lawn_Mow_Alogrithm(){
+void Lawn_Mow_Alogrithm() {
     smart_steering();
     Lines=countLines();
     //update_position(Lines);
-    if(Lines==-1){
+    if (Lines==-1) {
       back_up();
       turn_right();
       back_up();
