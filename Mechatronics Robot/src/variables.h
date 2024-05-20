@@ -70,6 +70,6 @@ long leftTurnTime = 0;
 long reverseTime = 0;
 long turnLength = 2325;
 long backupLength = 1250;
-long forwardLength = 2000;
+long forwardLength = 1600;
 
 long back_up_time;

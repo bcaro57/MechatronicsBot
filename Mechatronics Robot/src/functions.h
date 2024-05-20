@@ -162,11 +162,11 @@ void set_Orientation(char desired_O){
 int Go_to_Position(int Desired_X, int Desired_Y, bool backUpNeeded) {
     int error_X=Desired_X-Current_X;
     int error_Y=Desired_Y-Current_Y;
-    if (backUpNeeded){
-      back_up();
-    }
     if (error_X<0) {
       set_Orientation('L');
+      if (backUpNeeded){
+        back_up();
+      }
       while(Current_X!=Desired_X ||Lines==-1){
       currentTime = millis();
       smart_steering();
@@ -178,6 +178,9 @@ int Go_to_Position(int Desired_X, int Desired_Y, bool backUpNeeded) {
     forward();
     } else if (error_X>0) {
         set_Orientation('R');
+        if (backUpNeeded){
+          back_up();
+        }
         while(Current_X!=Desired_X||Lines==-1){
         currentTime = millis();
         smart_steering();
@@ -193,6 +196,9 @@ int Go_to_Position(int Desired_X, int Desired_Y, bool backUpNeeded) {
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     if(error_Y<0) {
         set_Orientation('B');
+        if (backUpNeeded){
+          back_up();
+        }
         while(Current_Y!= Desired_Y|| Lines==-1){
         currentTime = millis();
         smart_steering();
@@ -205,6 +211,9 @@ int Go_to_Position(int Desired_X, int Desired_Y, bool backUpNeeded) {
     }
     else if(error_Y>0) {
         set_Orientation('F');
+        if (backUpNeeded){
+          back_up();
+        }
         Serial.print("orientation");
         Serial.println(Orientation);
         while(Current_Y!= Desired_Y|| Lines==-1){
@@ -580,15 +589,17 @@ void homingSequence() {
         // orient the robot to face forwar
         servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
         servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-        for (int i = 0; i < 3; i++){
+        for (int i = 0; i < 4; i++){
           digitalWrite(ledPinRed, HIGH);
           digitalWrite(ledPinGreen, HIGH);
           digitalWrite(ledPinBlue, HIGH);
-          delay(300);
+          digitalWrite(ledPinWhite, HIGH);
+          delay(250);
           digitalWrite(ledPinRed, LOW);
           digitalWrite(ledPinGreen, LOW);
           digitalWrite(ledPinBlue, LOW);
-          delay(300);
+          digitalWrite(ledPinWhite, LOW);
+          delay(250);
         } 
         Serial.println("finished homing sequence :)");
         calibrated = true;
@@ -694,13 +705,13 @@ int Put_out_Fire(){
       smart_steering();
       Serial.println(distance2box);
     }
-    servo.writeMicroseconds(ladderServoPin, downPosition);
+    myServo.write(120);
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     delay(1000);
     back_up();
     turn_right();
-    servo.writeMicroseconds(ladderServoPin, upPosition);
+    myServo.write(0);
     return 1;
    }
   else if(digitalRead(RightIRSensor)==0){//else if( set_off=='R'){
@@ -711,13 +722,13 @@ int Put_out_Fire(){
       smart_steering();
       Serial.println(distance2box);
     }
-    servo.writeMicroseconds(ladderServoPin, downPosition);
+    myServo.write(120);
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     delay(1000);
     back_up();
     turn_left();
-    servo.writeMicroseconds(ladderServoPin, upPosition);
+    myServo.write(0);
     return 1;
    }
     else if(digitalRead(frontIRSensor)==0){//else if(set_off=='F'){

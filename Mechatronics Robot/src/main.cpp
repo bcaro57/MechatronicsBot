@@ -20,7 +20,7 @@ void setup() {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
-  myServo.attach(A1);
+  myServo.attach(ladderServoPin);
 
   // Radio setup
 
@@ -32,6 +32,8 @@ void setup() {
   radio.openWritingPipe(addresses[0]); // 00001
   radio.openReadingPipe(1, addresses[1]); // 00002
   radio.setPALevel(RF24_PA_HIGH);
+
+  myServo.write(0);
 
   // Servo setup
   servo.begin();
@@ -45,7 +47,7 @@ void setup() {
   while (buttonPressed == false){
     buttonState();
   }
-  //homingSequence();
+  
   digitalWrite(ledPinRed, HIGH); digitalWrite(ledPinGreen, HIGH); digitalWrite(ledPinBlue, HIGH); digitalWrite(ledPinWhite, HIGH);
   delay(250);
   digitalWrite(ledPinRed, LOW); digitalWrite(ledPinGreen, LOW); digitalWrite(ledPinBlue, LOW); digitalWrite(ledPinWhite, LOW);
@@ -54,6 +56,7 @@ void setup() {
   delay(250);
   digitalWrite(ledPinRed, LOW); digitalWrite(ledPinGreen, LOW); digitalWrite(ledPinBlue, LOW); digitalWrite(ledPinWhite, LOW);
   delay(250);
+  // homingSequence();
 }
 
 void loop() {

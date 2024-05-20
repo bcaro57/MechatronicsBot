@@ -20,7 +20,7 @@ are using, which are not pins in our ardunio but locally accessed addresses on t
 
 #define leftServoPin 9
 #define rightServoPin 10
-#define ladderServoPin 11
+#define ladderServoPin 31
 #define trigPin 22
 #define echoPin 23
 
