@@ -5,6 +5,8 @@
 #include "pindefs.h"
 #include "variables.h"
 
+Servo myServo;
+
 Adafruit_PWMServoDriver servo = Adafruit_PWMServoDriver();
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 
@@ -50,7 +52,7 @@ void smart_steering();
 void update_position(int Lines);
 void update_orientation(char current_O, char rotate);
 void Lawn_Mow_Alogrithm();
-int Go_to_Position(int Desired_X, int Desired_Y);
+int Go_to_Position(int Desired_X, int Desired_Y, bool backUpNeeded);
 int Put_out_Fire();
 void Move_forward_once();
 void box_in_front();
@@ -98,7 +100,7 @@ void back_up() {
 void forward() {
     currentTime = millis();
     back_up_time  = millis();
-    while(currentTime -back_up_time < backupLength*1.5) {
+    while(currentTime -back_up_time < forwardLength) {
       smart_steering();
         currentTime = millis();
     }
@@ -157,36 +159,25 @@ void set_Orientation(char desired_O){
 }
 }
 
-int Go_to_Position(int Desired_X, int Desired_Y) {
-    Serial.print("Current X:");
-    Serial.print(Current_X);
-    Serial.print("Current Y:");
-    Serial.print(Current_Y);
-    Serial.print("Desired X:");
-    Serial.print(Desired_X);
-    Serial.print("Desired Y:");
-    Serial.println(Desired_Y);
+int Go_to_Position(int Desired_X, int Desired_Y, bool backUpNeeded) {
     int error_X=Desired_X-Current_X;
     int error_Y=Desired_Y-Current_Y;
+    if (backUpNeeded){
+      back_up();
+    }
     if (error_X<0) {
-        set_Orientation('L');
-         Serial.print("orientation");
-        Serial.println(Orientation);
-        back_up();
-        while(Current_X!=Desired_X ||Lines==-1){
-        currentTime = millis();
-        smart_steering();
-        Lines=countLines();
-        if(Put_out_Fire()==1){
-          return 1;
-        }
+      set_Orientation('L');
+      while(Current_X!=Desired_X ||Lines==-1){
+      currentTime = millis();
+      smart_steering();
+      Lines=countLines();
+      if(Put_out_Fire()==1){
+        return 1;
+      }
     }
     forward();
     } else if (error_X>0) {
         set_Orientation('R');
-         Serial.print("orientation");
-        Serial.println(Orientation);
-        back_up();
         while(Current_X!=Desired_X||Lines==-1){
         currentTime = millis();
         smart_steering();
@@ -202,9 +193,6 @@ int Go_to_Position(int Desired_X, int Desired_Y) {
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     if(error_Y<0) {
         set_Orientation('B');
-         Serial.print("orientation");
-        Serial.println(Orientation);
-        back_up();
         while(Current_Y!= Desired_Y|| Lines==-1){
         currentTime = millis();
         smart_steering();
@@ -219,8 +207,6 @@ int Go_to_Position(int Desired_X, int Desired_Y) {
         set_Orientation('F');
         Serial.print("orientation");
         Serial.println(Orientation);
-
-        back_up();
         while(Current_Y!= Desired_Y|| Lines==-1){
         currentTime = millis();
         smart_steering();
@@ -741,12 +727,12 @@ int Put_out_Fire(){
       smart_steering();
       Serial.println(distance2box);
     }
-    servo.writeMicroseconds(ladderServoPin, downPosition);
+    myServo.write(120);
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     delay(1000);
     back_up();
-    servo.writeMicroseconds(ladderServoPin, upPosition);
+    myServo.write(0);
     return 1;
    }
    else{
@@ -762,31 +748,48 @@ void box_in_front(){
     int box_start_y=Current_Y;
     if(Orientation=='F'){
       box_end_y = box_start_y + 2;
+
+      if(Go_to_Position((Current_X-1), Current_Y, true) == 1){
+        Go_to_Position((Current_X-1), Current_Y, true);
+      }
+      if(Go_to_Position((Current_X), Current_Y+2, true) == 1){
+        Go_to_Position((Current_X), Current_Y+1, true);
+      }
+      if(Go_to_Position((Current_X+2), Current_Y, true) == 1){
+          Go_to_Position((Current_X+1), Current_Y, true);
+        }
+      if (Go_to_Position(Current_X, Current_Y-1, true) == 1){
+        digitalWrite(ledPinWhite, HIGH);
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+        delay(2000);
+      }
+      Go_to_Position(Current_X, Current_Y+1, true);
+      Go_to_Position(Current_X-1, Current_Y, true);
+      turn_right();
     }
     else if(Orientation=='B'){
       box_end_y = box_start_y - 2;
-    }
-      if(Go_to_Position((Current_X-1), Current_Y) == 1){
-        Go_to_Position((Current_X-1), Current_Y);
-      }
-      if(Go_to_Position((Current_X), Current_Y+2) == 1){
-        Go_to_Position((Current_X), Current_Y+1);
-      }
 
-    //Go_to_Position(Current_X+2, Current_Y);
-    if(Go_to_Position((Current_X+2), Current_Y) == 1){
-        Go_to_Position((Current_X+1), Current_Y);
+      if(Go_to_Position((Current_X+1), Current_Y, true) == 1){
+        Go_to_Position((Current_X+1), Current_Y, true);
       }
-    if (Go_to_Position(Current_X, Current_Y-1)){
-      digitalWrite(ledPinWhite, HIGH);
-      servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-      servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-      delay(2000);
+      if(Go_to_Position((Current_X), Current_Y-2, true) == 1){
+        Go_to_Position((Current_X), Current_Y-1, true);
+      }
+      if(Go_to_Position((Current_X-2), Current_Y, true) == 1){
+          Go_to_Position((Current_X-1), Current_Y, true);
+        }
+      if (Go_to_Position(Current_X, Current_Y+1, true) == 1){
+        digitalWrite(ledPinWhite, HIGH);
+        servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+        servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+        delay(2000);
+      }
+      Go_to_Position(Current_X, Current_Y-1, true);
+      Go_to_Position(Current_X+1, Current_Y, true);
+      turn_right();
     }
-   
-    
- 
-
   }
 }
 

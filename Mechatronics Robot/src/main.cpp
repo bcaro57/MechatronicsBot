@@ -6,8 +6,6 @@
 #include "pindefs.h"
 #include "functions.h"
 
-Servo myServo;
-
 void setup() {
   // Pin initialization
   pinMode(ledPinRed, OUTPUT);    // initialize the red LED pin as an output
@@ -74,8 +72,18 @@ void loop() {
 
   if (buttonPressed == true) {
     transcieveData();
-    digitalWrite(ledPinWhite, LOW);
     smart_steering();
+    if (countLines() == -1){
+      back_up();
+      if (Orientation == 'F'){
+        Go_to_Position(Current_X + 1, Current_Y, false);
+        turn_right();
+      }
+      else if (Orientation == 'B'){
+        Go_to_Position(Current_X + 1, Current_Y, false);
+        turn_left();
+      }
+    }
     box_in_front();
     /*
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);

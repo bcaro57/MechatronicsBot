@@ -68,7 +68,8 @@ int slowSpeed = 45;
 int calibrationState = SYSTEM_START;
 long leftTurnTime = 0;
 long reverseTime = 0;
-long turnLength = 2300;
-long backupLength = 1300;
+long turnLength = 2325;
+long backupLength = 1250;
+long forwardLength = 2000;
 
 long back_up_time;
