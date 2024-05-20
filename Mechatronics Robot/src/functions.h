@@ -45,6 +45,7 @@ int countLines();
 void transcieveData();
 char detectFire();
 void homingSequence();
+void homingSequenceSimple();
 void buttonState();
 double detectBox();
 double detectBox_Loop();
@@ -486,7 +487,22 @@ void buttonState() {
 /*
 This function currently homes the robot to the bottom left corner. It has to be oriented facing the back out of bounds line to start.
 */
-
+void homingSequenceSimple(){
+  currentTime = millis();
+  turn_left();
+  back_up();
+  currentTime = millis();
+  Lines=countLines();
+  while(Lines!=-1){
+    currentTime = millis();
+    smart_steering();
+    Lines=countLines();
+  }
+  turn_right();
+  back_up();
+  Current_X=0;
+  Current_Y=0;
+}
 void homingSequence() {
   Serial.println("starting homing sequence");
   while (!calibrated){
@@ -703,7 +719,7 @@ int Put_out_Fire(){
     while(distance2box>2){
       distance2box=detectBox_Loop();
       smart_steering();
-      Serial.println(distance2box);
+      //Serial.println(distance2box);
     }
     myServo.write(120);
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
@@ -720,7 +736,7 @@ int Put_out_Fire(){
     while(distance2box>2){
       distance2box=detectBox_Loop();
       smart_steering();
-      Serial.println(distance2box);
+      //Serial.println(distance2box);
     }
     myServo.write(120);
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
@@ -736,7 +752,7 @@ int Put_out_Fire(){
     while(distance2box>2){
       distance2box=detectBox_Loop();
       smart_steering();
-      Serial.println(distance2box);
+      //Serial.println(distance2box);
     }
     myServo.write(120);
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);

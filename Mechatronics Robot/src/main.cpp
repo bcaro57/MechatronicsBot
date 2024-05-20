@@ -47,7 +47,7 @@ void setup() {
   while (buttonPressed == false){
     buttonState();
   }
-  
+  //homingSequenceSimple();
   digitalWrite(ledPinRed, HIGH); digitalWrite(ledPinGreen, HIGH); digitalWrite(ledPinBlue, HIGH); digitalWrite(ledPinWhite, HIGH);
   delay(250);
   digitalWrite(ledPinRed, LOW); digitalWrite(ledPinGreen, LOW); digitalWrite(ledPinBlue, LOW); digitalWrite(ledPinWhite, LOW);
@@ -74,7 +74,7 @@ void loop() {
 
 
   if (buttonPressed == true) {
-    transcieveData();
+   // transcieveData();
     smart_steering();
     if (countLines() == -1){
       back_up();
