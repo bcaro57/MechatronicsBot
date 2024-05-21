@@ -5,15 +5,15 @@
 #include "pindefs.h"
 #include "variables.h"
 
-Servo myServo;
+//Servo myServo;
 
 Adafruit_PWMServoDriver servo = Adafruit_PWMServoDriver();
 #define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
 
 // Radio initialization
 RF24 radio(7, 8); // CE, CSN
-const byte addresses[][6] = {"00001", "00002"};
-
+//const byte addresses[][6] = {"00001", "00002"};
+const byte address[6] = "00001";
 /* 
 This is the package of data from our controller. It includes 'Lefty' and 'Righty', which are values
 that control the speed of our two wheels given to us by the controller. It also has 'Single', 'Double', 
@@ -21,18 +21,24 @@ and 'border', which are updated by the robot and seen on our controller.
 
 The max size of this struct is 32 bytes - that is the NRF24L01 buffer limit.
 */
-
+/*
 struct Data_Package {
   int leftJoystick = 512;
   int rightJoystick = 512;
   int servoJoystick = 512;
-
   int xPosition = 0;
   int yPosition = 0;
   char orientation = 'F';
 };
-
+*/
 // Create a variable with the above structure
+struct Data_Package {
+  int leftJoystick = 0;
+  int rightJoystick = 0;
+  int Button_state = 0;
+
+};
+//Data_Package data;
 Data_Package data;
 
 // Initializing our functions 
@@ -101,7 +107,7 @@ void back_up() {
 void forward() {
     currentTime = millis();
     back_up_time  = millis();
-    while(currentTime -back_up_time < forwardLength) {
+    while(currentTime -back_up_time < forwardLength*1.2) {
       smart_steering();
         currentTime = millis();
     }
@@ -215,8 +221,8 @@ int Go_to_Position(int Desired_X, int Desired_Y, bool backUpNeeded) {
         if (backUpNeeded){
           back_up();
         }
-        Serial.print("orientation");
-        Serial.println(Orientation);
+        //Serial.print("orientation");
+        //Serial.println(Orientation);
         while(Current_Y!= Desired_Y|| Lines==-1){
         currentTime = millis();
         smart_steering();
@@ -287,8 +293,10 @@ void transcieveData() {
   if(radio.available()) {
     while (radio.available()) {
       radio.read(&data, sizeof(Data_Package));
+      //Serial.println(data.rightJoystick);
     }
   }
+  /*
   else {
   }
 
@@ -300,7 +308,7 @@ void transcieveData() {
   data.yPosition = Current_Y;
   data.orientation = Orientation;
   radio.write(&data, sizeof(Data_Package));
-
+*/
 }
 
 /*
@@ -423,7 +431,7 @@ int countLines(){
         digitalWrite(ledPinBlue, HIGH); // for some reason this LED is dim with a digitalWrite, but this makes it much brighter
         lineCount = -1;
         if (printBoundaryError) {
-            Serial.println("we are out of bounds");
+            //Serial.println("we are out of bounds");
             printBoundaryError = false;
         }
         return lineCount;
@@ -433,14 +441,14 @@ int countLines(){
     if (lineCount == 1 && !currentlyCounting) {
         digitalWrite(ledPinRed, HIGH);
         ledBlinkingTimer = millis();
-        Serial.println("we hit for red");
+        //Serial.println("we hit for red");
         update_position(1);
         lineCount = 0;
     }
     else if (lineCount >= 2 && !currentlyCounting) {
         digitalWrite(ledPinGreen, HIGH);
         ledBlinkingTimer = millis();
-        Serial.println("we hit for green");
+        //Serial.println("we hit for green");
         update_position(2);
         lineCount = 0;
     }
@@ -464,22 +472,22 @@ void buttonState() {
 
   // Sets buttonPressed to true if the button is pressed and previously was false
   if (digitalRead(buttonPin) == HIGH && buttonPressed == false) {
-    Serial.println("Button Pressed - Begining Control Loop");
+    //Serial.println("Button Pressed - Begining Control Loop");
     delay(500);
-    Serial.print("Initial State: ");
-    Serial.print(buttonPressed);
+    //Serial.print("Initial State: ");
+    //Serial.print(buttonPressed);
     buttonPressed = true;
-    Serial.print(", Final State: ");
-    Serial.println(buttonPressed);
+    //Serial.print(", Final State: ");
+    //Serial.println(buttonPressed);
   } // Sets buttonPressed to false if the button is pressed and previously was true
   else if (digitalRead(buttonPin) == HIGH && buttonPressed == true) {
-    Serial.println("Button Pressed - Pausing Control Loop");
+    //Serial.println("Button Pressed - Pausing Control Loop");
     delay(500);
-    Serial.print("Initial State: ");
-    Serial.print(buttonPressed);
+    //Serial.print("Initial State: ");
+   // Serial.print(buttonPressed);
     buttonPressed = false;
-    Serial.print(", Final State: ");
-    Serial.println(buttonPressed);
+    //Serial.print(", Final State: ");
+    //Serial.println(buttonPressed);
   }
 
 }
@@ -498,13 +506,14 @@ void homingSequenceSimple(){
     smart_steering();
     Lines=countLines();
   }
+  back_up();
   turn_right();
   back_up();
   Current_X=0;
   Current_Y=0;
 }
 void homingSequence() {
-  Serial.println("starting homing sequence");
+  //Serial.println("starting homing sequence");
   while (!calibrated){
     currentTime = millis();
     switch(calibrationState){
@@ -524,18 +533,18 @@ void homingSequence() {
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
           delay(2000);
-          Serial.println("now backing up");
+          //Serial.println("now backing up");
           reverseTime = millis();
           calibrationState = FIRST_BACK_UP;
         }
         // could make it more robust by adding logic for passing a single line or a double line
         else if (countLines() == 1){
           // turn 180
-          Serial.print("");
+          //Serial.print("");
         }
         else if (countLines() == 2){
           // turn 90
-          Serial.print("");
+          //Serial.print("");
         }
         break;
       case FIRST_BACK_UP:
@@ -546,7 +555,7 @@ void homingSequence() {
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
           delay(1000);
-          Serial.println("now turning");
+          //Serial.println("now turning");
           leftTurnTime = millis();
           calibrationState = FIRST_TURN_LEFT;
         }
@@ -559,7 +568,7 @@ void homingSequence() {
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
           delay(1000);
-          Serial.println("now looking for the left edge");
+          //Serial.println("now looking for the left edge");
           calibrationState = DETECT_LEFT_EDGE;
         }
         break;
@@ -571,7 +580,7 @@ void homingSequence() {
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
           delay(1000);
-          Serial.println("now backing up");
+          //Serial.println("now backing up");
           reverseTime = millis();
           calibrationState = SECOND_BACK_UP;
         }
@@ -584,7 +593,7 @@ void homingSequence() {
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
           delay(1000);
-          Serial.println("now turning");
+          //Serial.println("now turning");
           leftTurnTime = millis();
           calibrationState = SECOND_TURN_LEFT;
         }
@@ -597,7 +606,7 @@ void homingSequence() {
           servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
           servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
           delay(500);
-          Serial.println("finished orienting");
+          //Serial.println("finished orienting");
           calibrationState = ORIENT_FINAL;
         }
         break;
@@ -617,7 +626,7 @@ void homingSequence() {
           digitalWrite(ledPinWhite, LOW);
           delay(250);
         } 
-        Serial.println("finished homing sequence :)");
+        //Serial.println("finished homing sequence :)");
         calibrated = true;
         break;
     }
@@ -644,8 +653,8 @@ double detectBox() {
         // Calculating the distance
         distance = duration * 0.034 / 2*0.393701;
     }
-    Serial.print("Distance: ");
-    Serial.println(distance);
+    //Serial.print("Distance: ");
+    //Serial.println(distance);
     
     if (distance > 20.0) {
         digitalWrite(ledPinRed,HIGH);
@@ -721,13 +730,14 @@ int Put_out_Fire(){
       smart_steering();
       //Serial.println(distance2box);
     }
-    myServo.write(120);
+    servo.writeMicroseconds(ladderServoPin, 1100);//myServo.write(120);
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     delay(1000);
+    servo.writeMicroseconds(ladderServoPin, 500);//myServo.write(0);
     back_up();
     turn_right();
-    myServo.write(0);
+ 
     return 1;
    }
   else if(digitalRead(RightIRSensor)==0){//else if( set_off=='R'){
@@ -738,13 +748,14 @@ int Put_out_Fire(){
       smart_steering();
       //Serial.println(distance2box);
     }
-    myServo.write(120);
+    servo.writeMicroseconds(ladderServoPin, 1100);//myServo.write(120);
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     delay(1000);
+    servo.writeMicroseconds(ladderServoPin, 500);//myServo.write(0);
     back_up();
     turn_left();
-    myServo.write(0);
+    
     return 1;
    }
     else if(digitalRead(frontIRSensor)==0){//else if(set_off=='F'){
@@ -754,12 +765,13 @@ int Put_out_Fire(){
       smart_steering();
       //Serial.println(distance2box);
     }
-    myServo.write(120);
+    servo.writeMicroseconds(ladderServoPin, 1100);//myServo.write(120);
     servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
     servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
     delay(1000);
+    servo.writeMicroseconds(ladderServoPin, 500);//myServo.write(0);
     back_up();
-    myServo.write(0);
+   
     return 1;
    }
    else{

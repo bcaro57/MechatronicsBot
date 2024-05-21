@@ -20,20 +20,20 @@ void setup() {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
-  myServo.attach(ladderServoPin);
+  //myServo.attach(ladderServoPin);
 
   // Radio setup
 
   Serial.begin(9600);
   if (!radio.begin()) {
-    Serial.println(("radio hardware is not responding!!"));
+    //Serial.println(("radio hardware is not responding!!"));
     while (1) {}  // hold in infinite loop
   }
-  radio.openWritingPipe(addresses[0]); // 00001
-  radio.openReadingPipe(1, addresses[1]); // 00002
-  radio.setPALevel(RF24_PA_HIGH);
+ // radio.openWritingPipe(addresses[0]); // 00001
+ radio.openReadingPipe(0, address); // 00002 //radio.openReadingPipe(1, addresses[1]); // 00002
+ radio.setPALevel(RF24_PA_HIGH);
 
-  myServo.write(0);
+  //myServo.write(0);
 
   // Servo setup
   servo.begin();
@@ -43,11 +43,11 @@ void setup() {
 
   servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
   servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-  Serial.println("Ready!");
+  //Serial.println("Ready!");
   while (buttonPressed == false){
     buttonState();
   }
-  //homingSequenceSimple();
+  homingSequenceSimple();
   digitalWrite(ledPinRed, HIGH); digitalWrite(ledPinGreen, HIGH); digitalWrite(ledPinBlue, HIGH); digitalWrite(ledPinWhite, HIGH);
   delay(250);
   digitalWrite(ledPinRed, LOW); digitalWrite(ledPinGreen, LOW); digitalWrite(ledPinBlue, LOW); digitalWrite(ledPinWhite, LOW);
@@ -56,13 +56,13 @@ void setup() {
   delay(250);
   digitalWrite(ledPinRed, LOW); digitalWrite(ledPinGreen, LOW); digitalWrite(ledPinBlue, LOW); digitalWrite(ledPinWhite, LOW);
   delay(250);
-  // homingSequence();
 }
 
 void loop() {
 
   currentTime = millis();
   buttonState();
+  //transcieveData();
   // calibration sequence - only used prior to actual testing
 
   // servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
@@ -73,33 +73,26 @@ void loop() {
   // }
 
 
-  if (buttonPressed == true) {
-   // transcieveData();
+  //if (buttonPressed == true) {
+   digitalWrite(ledPinWhite, LOW);
     smart_steering();
     if (countLines() == -1){
       back_up();
       if (Orientation == 'F'){
-        Go_to_Position(Current_X + 1, Current_Y, false);
+        Go_to_Position(Current_X + 1, Current_Y, true);
         turn_right();
       }
       else if (Orientation == 'B'){
-        Go_to_Position(Current_X + 1, Current_Y, false);
+        Go_to_Position(Current_X + 1, Current_Y, true);
         turn_left();
       }
     }
     box_in_front();
-    /*
-    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
-    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-    myServo.write(90);
-    */
-  }
-  else{
-    transcieveData();
-    digitalWrite(ledPinWhite, HIGH);
-    int speed = 75;
-    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + map(data.leftJoystick, 0, 1023, -speed, speed));
-    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - map(data.rightJoystick, 0, 1023, -speed, speed));
-    myServo.write(map(data.servoJoystick, 0, 1023, 90, 180));
-  }
+  //}
+  //else{
+    //int speed = 75;
+    //servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + map(data.leftJoystick, 0, 1023, -speed, speed));
+    //servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - map(data.rightJoystick, 0, 1023, -speed, speed));
+    //myServo.write(map(data.servoJoystick, 0, 1023, 90, 180));
+  //}
 }
