@@ -1,11 +1,6 @@
-#define SYSTEM_START 0
-#define DETECT_BOTTOM_EDGE 1
-#define FIRST_BACK_UP 2
-#define FIRST_TURN_LEFT 3
-#define DETECT_LEFT_EDGE 4
-#define SECOND_BACK_UP 5
-#define SECOND_TURN_LEFT 6
-#define ORIENT_FINAL 7
+/*
+this file defines all of the variables for the various functions that we have
+*/
 
 // Ultra sonic Stuff
 long duration;
@@ -55,21 +50,20 @@ int MAP[8][8]={{0,0,0,0,0,0,0,0},
               {0,0,0,0,0,0,0,0},
               {0,0,0,0,0,0,0,0},
               {1,0,0,0,0,0,0,0}};
-int Current_X=0;
-int Current_Y=0;
-char Orientation= 'F';
+int currentX=0;
+int currentY=0;
+char orientation= 'F';
 
-int Lines = 0;
+int lines = 0;
 
 bool buttonPressed = false;
 
 bool calibrated = false;
 int slowSpeed = 45;
-int calibrationState = SYSTEM_START;
 long leftTurnTime = 0;
 long reverseTime = 0;
 long turnLength = 2325;
 long backupLength = 1250;
-long forwardLength = 1600;
+long forwardLength = 1920;
 
-long back_up_time;
+long backUpTime;

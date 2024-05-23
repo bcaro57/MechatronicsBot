@@ -7,47 +7,41 @@
 #include "functions.h"
 
 void setup() {
-  // Pin initialization
-  pinMode(ledPinRed, OUTPUT);    // initialize the red LED pin as an output
-  pinMode(ledPinGreen, OUTPUT);  // initialize the green LED pin as an output
+  // turn on the serial monitor
+  Serial.begin(9600);
+
+  // initialize the LEDs that we use as outputs
+  pinMode(ledPinRed, OUTPUT);    
+  pinMode(ledPinGreen, OUTPUT); 
   pinMode(ledPinBlue, OUTPUT);
   pinMode(ledPinWhite, OUTPUT);
-  pinMode(middleFloorSensor, INPUT);  // initialize the IR sensor pin as an input
-  pinMode(frontIRSensor, INPUT);  // initialize the IR sensor pin as an input
+  // initialize the IR sensors
+  pinMode(middleFloorSensor, INPUT);
+  pinMode(frontIRSensor, INPUT);
   pinMode(LeftIRSensor, INPUT);
   pinMode(RightIRSensor, INPUT);
-  pinMode(buttonPin, INPUT);      // initialize the button pin as an input
+  // initialize the button
+  pinMode(buttonPin, INPUT);  
+  // initialize the ultrasonic sensor
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
 
-  //myServo.attach(ladderServoPin);
-
-  // Radio setup
-
-  Serial.begin(9600);
-  if (!radio.begin()) {
-    //Serial.println(("radio hardware is not responding!!"));
-    while (1) {}  // hold in infinite loop
-  }
- // radio.openWritingPipe(addresses[0]); // 00001
- radio.openReadingPipe(0, address); // 00002 //radio.openReadingPipe(1, addresses[1]); // 00002
- radio.setPALevel(RF24_PA_HIGH);
-
-  //myServo.write(0);
-
-  // Servo setup
+  // Setting up the servo driver for the two drive wheels and the ladder
   servo.begin();
   servo.setOscillatorFrequency(27000000);
   servo.setPWMFreq(SERVO_FREQ);  
   delay(10);
 
+  // stop the motors on startup
   servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
   servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-  //Serial.println("Ready!");
+
+  // stay in a loop until the on board button is pressed
   while (buttonPressed == false){
     buttonState();
   }
-  homingSequenceSimple();
+  // complete a homing sequence and flash all lights when done 
+  homingSequence();
   digitalWrite(ledPinRed, HIGH); digitalWrite(ledPinGreen, HIGH); digitalWrite(ledPinBlue, HIGH); digitalWrite(ledPinWhite, HIGH);
   delay(250);
   digitalWrite(ledPinRed, LOW); digitalWrite(ledPinGreen, LOW); digitalWrite(ledPinBlue, LOW); digitalWrite(ledPinWhite, LOW);
@@ -58,41 +52,35 @@ void setup() {
   delay(250);
 }
 
-void loop() {
+/*
+this loop switches the algorithm on or off based on if the button is pressed. 
 
+the algorithm will drive up and down each column (which we have denoted as the y-axis), and when it reaches a border, 
+it switches to the next row (which we have denoted as the x-axis). when a box is found, it runs a predescribed path
+that will check each side of the box for an IR sensor. if that is found, it runs through a reorientation procedure
+and hits the box to turn off the signal.
+*/
+void loop() {
   currentTime = millis();
   buttonState();
-  //transcieveData();
-  // calibration sequence - only used prior to actual testing
 
-  // servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
-  // for (int i=1410;i<1510;i++){
-  //   servo.writeMicroseconds(leftServoPin, i);
-  //   Serial.println(i);
-  //   delay(1000);
-  // }
-
-
-  //if (buttonPressed == true) {
-   digitalWrite(ledPinWhite, LOW);
-    smart_steering();
+  if (buttonPressed == true) {
+    smartSteering();
     if (countLines() == -1){
-      back_up();
-      if (Orientation == 'F'){
-        Go_to_Position(Current_X + 1, Current_Y, true);
-        turn_right();
+      backUp();
+      if (orientation == 'F'){
+        goToPosition(currentX + 1, currentY);
+        turnRight();
       }
-      else if (Orientation == 'B'){
-        Go_to_Position(Current_X + 1, Current_Y, true);
-        turn_left();
+      else if (orientation == 'B'){
+        goToPosition(currentX + 1, currentY);
+        turnLeft();
       }
     }
-    box_in_front();
-  //}
-  //else{
-    //int speed = 75;
-    //servo.writeMicroseconds(leftServoPin, left_StoppedSpeed + map(data.leftJoystick, 0, 1023, -speed, speed));
-    //servo.writeMicroseconds(rightServoPin, right_StoppedSpeed - map(data.rightJoystick, 0, 1023, -speed, speed));
-    //myServo.write(map(data.servoJoystick, 0, 1023, 90, 180));
-  //}
+    boxInFront();
+  }
+  else {
+    servo.writeMicroseconds(leftServoPin, left_StoppedSpeed);
+    servo.writeMicroseconds(rightServoPin, right_StoppedSpeed);
+  }
 }
